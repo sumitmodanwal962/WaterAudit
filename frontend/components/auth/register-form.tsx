@@ -63,22 +63,20 @@ export function RegisterForm() {
           <button
             type="button"
             onClick={() => setUserType("individual")}
-            className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all ${
-              userType === "individual"
-                ? "bg-card text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
+            className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all ${userType === "individual"
+              ? "bg-card text-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+              }`}
           >
             Individual
           </button>
           <button
             type="button"
             onClick={() => setUserType("organisation")}
-            className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all ${
-              userType === "organisation"
-                ? "bg-card text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
+            className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all ${userType === "organisation"
+              ? "bg-card text-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+              }`}
           >
             Organisation
           </button>
@@ -221,23 +219,21 @@ export function RegisterForm() {
             </div>
           </div>
 
-          {/* MHOW (Location field) */}
+          {/* Location Field */}
           <div className="space-y-2">
-            <Label htmlFor="mhow" className="text-sm font-medium text-foreground">
-              MHOW (Location)
+            <Label htmlFor="location" className="text-sm font-medium text-foreground">
+              Location
             </Label>
-            <Select required>
-              <SelectTrigger className="h-12 rounded-xl bg-input border-border focus:border-primary focus:ring-2 focus:ring-primary/20">
-                <SelectValue placeholder="Select your MHOW location" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="mhow-1">MHOW Central</SelectItem>
-                <SelectItem value="mhow-2">MHOW North</SelectItem>
-                <SelectItem value="mhow-3">MHOW South</SelectItem>
-                <SelectItem value="mhow-4">MHOW East</SelectItem>
-                <SelectItem value="mhow-5">MHOW West</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="relative">
+              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Input
+                id="location"
+                type="text"
+                placeholder="Enter your location"
+                className="pl-11 h-12 rounded-xl bg-input border-border focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                required
+              />
+            </div>
           </div>
 
           {/* Password Field */}
