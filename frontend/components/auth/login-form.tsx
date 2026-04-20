@@ -6,10 +6,12 @@ import { Eye, EyeOff, Mail, Lock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useRouter } from "next/navigation"
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -17,6 +19,7 @@ export function LoginForm() {
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1500))
     setIsLoading(false)
+    router.push("/dashboard")
   }
 
   return (

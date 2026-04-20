@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { useRouter } from "next/navigation"
 
 type UserType = "individual" | "organisation"
 
@@ -30,6 +31,7 @@ export function RegisterForm() {
   const [userType, setUserType] = useState<UserType>("individual")
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -37,6 +39,7 @@ export function RegisterForm() {
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1500))
     setIsLoading(false)
+    router.push("/dashboard")
   }
 
   const formVariants = {
