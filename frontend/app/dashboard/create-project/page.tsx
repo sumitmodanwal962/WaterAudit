@@ -251,12 +251,13 @@ export default function CreateProjectPage() {
                     <ArrowLeft className="h-4 w-4" />
                     Back
                   </button>
-                  <button 
+                  <Link 
+                    href="/dashboard/data-input"
                     className="flex items-center justify-center gap-2 rounded-xl bg-[#0f172a] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-black transition-all active:scale-95"
                   >
                     <CheckCircle2 className="h-4 w-4" />
                     Submit & Create Project
-                  </button>
+                  </Link>
                 </div>
               </div>
             )}
