@@ -9,6 +9,7 @@ import {
   Calendar,
   ChevronRight,
 } from "lucide-react"
+import Link from "next/link"
 
 export default function DashboardPage() {
   const projects = [
@@ -109,13 +110,13 @@ export default function DashboardPage() {
       </div>
 
       {/* Create New Project Section */}
-      <button className="w-full rounded-3xl border-2 border-dashed border-slate-200 bg-white py-16 text-center hover:border-[#0284c7] hover:bg-slate-50 transition-all flex flex-col items-center justify-center group cursor-pointer shadow-sm">
+      <Link href="/dashboard/create-project" className="w-full rounded-3xl border-2 border-dashed border-slate-200 bg-white py-16 text-center hover:border-[#0284c7] hover:bg-slate-50 transition-all flex flex-col items-center justify-center group cursor-pointer shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0284c7] focus:ring-offset-2">
         <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#e0f2fe] group-hover:scale-105 transition-transform">
           <FolderPlus className="h-8 w-8 text-[#0284c7]" />
         </div>
         <h3 className="text-xl font-bold text-[#0f172a] mb-1 group-hover:text-[#0284c7] transition-colors">Create New Project</h3>
         <p className="text-slate-500">Start a new water audit project</p>
-      </button>
+      </Link>
 
       {/* Existing Projects Header & Filters */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

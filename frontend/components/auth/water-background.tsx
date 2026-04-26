@@ -52,8 +52,8 @@ export function WaterBackground() {
           key={i}
           className="absolute rounded-full bg-white/10 backdrop-blur-sm"
           style={{
-            width: 20 + Math.random() * 40,
-            height: 20 + Math.random() * 40,
+            width: 20 + (((i * 13) % 10) / 10) * 40,
+            height: 20 + (((i * 17) % 10) / 10) * 40,
             left: `${10 + i * 15}%`,
             top: `${20 + (i % 3) * 25}%`,
           }}
