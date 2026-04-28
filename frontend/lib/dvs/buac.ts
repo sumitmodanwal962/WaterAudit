@@ -9,33 +9,40 @@ export const BUAC: DVSCategory = {
   ],
   validationQuestions: [
     {
-      question: "Was there any billed water used for consumers without meters during the audit year?",
+      question: "Were unmetered consumers billed for water usage during the audit year?",
       inputType: "yesno"
     },
     {
-      question: "What percentage of billed consumers do not have water meters (based on number of connections)?",
-      inputType: "percentage"
+      question: "What proportion of billed connections are unmetered?",
+      inputType: "select",
+      options: [
+        "< 10%",
+        "10%-20%",
+        "30%-50%",
+        "50%-70%",
+        "70%-90%",
+        "> 90%"
+      ]
     },
     {
       question: "What method is used to calculate or estimate water use for unmetered consumers?",
       inputType: "select",
       options: [
-        "No estimation method used",
-        "Flat-rate assumption (same for all consumers)",
-        "Category-based per-capita norms (residential, commercial, etc.)",
-        "Estimates derived from comparable metered consumer data",
-        "Field-verified estimates using temporary metering or surveys"
+        "Calculate approximately",
+        "Assessed based on guesses of consumption",
+        "Derived from similar customer groups within the utility\u2019s metered population, but the sample size available was limited",
+        "Estimated per unmetered customer or based on representative system-wide statistical samples"
       ]
     },
     {
-      question: "How often is water consumption for unmetered consumers estimated or updated?",
+      question: "How frequently does the utility estimate consumption for unmetered consumers?",
       inputType: "select",
       options: [
-        "Never updated after initial estimate",
-        "Updated only when major changes occur",
-        "Updated annually",
-        "Updated semi-annually",
-        "Updated quarterly or more frequently"
+        "Monthly",
+        "Once two months",
+        "Quarterly",
+        "Semi-annually",
+        "Annually"
       ]
     }
   ]

@@ -2,7 +2,7 @@ import { DVSCategory } from "./types";
 
 export const SDHE: DVSCategory = {
   categoryKey: "SDHE",
-  label: "Systematic Data Handling Errors",
+  label: "Systematic Data Handling Error",
   description: "Adjustments related to data handling and reporting errors",
   inputs: [
     { key: "SDHE", label: "Systematic Data Handling Errors", description: "Adjustments related to data handling and reporting errors", type: "volume", unit: "MLD" },
@@ -12,55 +12,45 @@ export const SDHE: DVSCategory = {
       question: "What is the default status shown in the worksheet for this data entry?",
       inputType: "select",
       options: [
-        "Default used with no review",
-        "Default accepted after basic check",
-        "Default value modified with rough estimate",
-        "Custom value entered based on available data",
-        "Custom value entered based on verified data"
+        "Default is applied as the custom field was chosen without entering a value"
       ]
     },
     {
       question: "How was the input data generated or calculated?",
       inputType: "select",
       options: [
-        "Default value used (no calculation)",
-        "Rough estimate based on experience / assumption",
-        "Calculated from billing system summary reports",
-        "Calculated from detailed billing data analysis",
-        "Derived from comprehensive metering and billing system audit"
+        "Estimated",
+        "Estimated based on field-identified cases of unrecorded unbilled consumption",
+        "Estimated through account-level analysis undertaken to identify inaccuracies in unbilled consumption"
       ]
     },
     {
       question: "What kind of checks or validations are done in the billing software to ensure correct unit conversions between meter readings and billing units?",
       inputType: "select",
       options: [
-        "No automated checks exist",
-        "Manual spot-checks by billing staff",
-        "Basic automated validation (range checks only)",
-        "Automated validation with exception reporting and manual review",
-        "Full automated validation with audit trail and regular third-party review"
+        "None",
+        "Meter multipliers were sampled and checked to ensure that their conversion factors are correctly applied within the billing system",
+        "All meter multipliers have been analyzed to confirm multiplier conversion in the billing system is correct"
       ]
     },
     {
       question: "What is the utility\u2019s policy to ensure that new water connections start being metered and billed without any delay?",
       inputType: "select",
       options: [
-        "No policy exists",
-        "Policy exists but not enforced",
-        "Policy exists with occasional compliance checks",
-        "Policy exists with regular monitoring and reporting",
-        "Strict policy with automated tracking and zero-delay billing activation"
+        "No policy has been established",
+        "A policy is in place, but lacks clarity",
+        "The policy is clearly defined, but its implementation is inconsistent",
+        "The policy is well established and consistently followed across operations"
       ]
     },
     {
-      question: "What type of auditing or review is carried out for the billing process?",
+      question: "What steps of auditing or review are carried out for the billing process?",
       inputType: "select",
       options: [
-        "No auditing or review",
-        "Internal review only when issues are reported",
-        "Periodic internal review (annual or less)",
-        "Regular internal audit (quarterly or more) with documented findings",
-        "Independent external audit with documented findings and corrective actions"
+        "None",
+        "An annual review of billing data is undertaken to detect routine errors, but a focused assessment of potential systematic data-handling issues has not yet been carried out",
+        "A comprehensive assessment addressing stuck meters, prolonged estimations, and incorrect multiplier coding was completed within five years preceding the audit",
+        "A comprehensive review addressing stuck meters, prolonged estimations, and incorrect multiplier coding was completed within two years prior to the audit"
       ]
     }
   ]

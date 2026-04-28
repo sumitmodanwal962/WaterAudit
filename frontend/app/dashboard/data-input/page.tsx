@@ -50,12 +50,13 @@ export default function DataInputPage() {
             <p className="text-slate-500">Enter system values and answer validation questions</p>
           </div>
         </div>
-        <button 
+        <Link
+          href="/dashboard/results"
           className="flex items-center justify-center gap-2 rounded-xl bg-[#0f172a] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-black transition-all active:scale-95"
         >
           <CheckCircle2 className="h-4 w-4" />
           Complete Audit Entry
-        </button>
+        </Link>
       </div>
 
       {/* Input Matrix */}

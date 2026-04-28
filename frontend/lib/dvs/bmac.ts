@@ -9,88 +9,74 @@ export const BMAC: DVSCategory = {
   ],
   validationQuestions: [
     {
-      question: "Were any customers provided metered water connections during the audit year?",
+      question: "Whether any customers were provided with any metered water connections during the audit year?",
       inputType: "yesno"
     },
     {
-      question: "For billed and metered consumers, what percentage of bills are based on actual meter readings in a normal billing cycle?",
-      inputType: "percentage"
-    },
-    {
-      question: "How often does the utility take meter readings from its customers?",
+      question: "What proportion of billed metered consumers are billed using actual meter readings in a standard billing cycle?",
       inputType: "select",
       options: [
-        "Annually or less frequently",
-        "Half-yearly",
+        "< 10%",
+        "10%-20%",
+        "30%-50%",
+        "50%-70%",
+        "70%-90%",
+        "> 90%"
+      ]
+    },
+    {
+      question: "What is the frequency of consumer meter readings taken by the utility? If there are different meter reading schedules, what is the most common frequency for most customers?",
+      inputType: "select",
+      options: [
+        "Semi-annually",
         "Quarterly",
-        "Bi-monthly",
-        "Monthly or more frequently"
+        "Once in two months",
+        "Monthly",
+        "Once every week"
       ]
     },
     {
-      question: "If there are different meter reading schedules, what is the most common frequency for most customers?",
-      inputType: "select",
-      options: [
-        "Annually or less frequently",
-        "Half-yearly",
-        "Quarterly",
-        "Bi-monthly",
-        "Monthly or more frequently"
-      ]
+      question: "Has the BMAC volume been adjusted to accurately represent water consumption during the audit year?",
+      inputType: "yesno"
     },
     {
-      question: "Is the BMAC volume adjusted so that it accurately represents water consumption during the audit year?",
+      question: "What is the frequency with which utility staff conduct internal reviews of the BMAC data?",
       inputType: "select",
       options: [
-        "No adjustment made",
-        "Minor adjustment using rough estimates",
-        "Adjusted using average consumption factors",
-        "Adjusted using pro-rata calculations for each billing cycle",
-        "Precisely adjusted using actual daily / monthly meter data"
-      ]
-    },
-    {
-      question: "How often do utility staff conduct internal reviews of the BMAC data?",
-      inputType: "select",
-      options: [
-        "No internal reviews",
-        "Only when discrepancies are reported",
+        "For every billing phase",
+        "More regularly than annually",
         "Annually",
-        "Quarterly",
-        "Monthly or more frequently"
+        "Less regularly than annually",
+        "No evaluation"
       ]
     },
     {
-      question: "What level of detail is checked during the internal review of BMAC data?",
+      question: "How detailed is the level of assessment during the internal review of BMAC data?",
       inputType: "select",
       options: [
-        "No review performed",
-        "Only totals are verified",
-        "Totals and sample accounts are checked",
-        "Detailed check of major consumer categories",
-        "Comprehensive account-level audit with statistical sampling"
+        "No evaluation",
+        "Minimal level of assessment",
+        "Moderate level of assessment",
+        "Detailed level of assessment",
+        "Comprehensive level of assessment"
       ]
     },
     {
-      question: "When was the last billing data review conducted by a person who is independent of the utility\u2019s billing team?",
+      question: "Has an independent reviewer recently examined the utility\u2019s billing data? If so, when?",
       inputType: "select",
       options: [
-        "Never conducted",
-        "More than 5 years ago",
-        "Within the last 3\u20135 years",
-        "Within the last 1\u20132 years",
-        "Within the last 12 months"
+        "Yes, but exactly not known",
+        "Yes, 5 years back",
+        "Within 2 to 5 years",
+        "Within 2 years"
       ]
     },
     {
-      question: "What level of detail was covered in that independent review of billing data?",
+      question: "How comprehensive was the independent review of the billing data?",
       inputType: "select",
       options: [
-        "No independent review conducted",
-        "Only summary-level totals reviewed",
-        "Sample-based review of selected accounts",
-        "Detailed review of major consumer categories and anomalies",
-        "Full account-level forensic audit with documented findings"
+        "Not reviewed",
+        "Reviewed by third party authority officials"
       ]
     }
   ]
