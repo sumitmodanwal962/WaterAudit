@@ -14,9 +14,9 @@ export const VOS_WI_WE_EA: DVSCategory = {
       question: "Are day-to-day changes in storage tank water volumes of the distribution system included while considering the \u201Cdaily volume from own sources\u201D?",
       inputType: "select",
       options: [
-        "Yes",
+        "Not known",
         "No",
-        "Not known"
+        "Yes"
       ]
     },
     {
@@ -27,10 +27,10 @@ export const VOS_WI_WE_EA: DVSCategory = {
       question: "Are flow test and electronic calibration results integrated into the VOSEA data for the water audit?",
       inputType: "select",
       options: [
-        "Due to unavailability of results the error adjustments have been made",
-        "Results are available but not analyzed",
+        "Results are available and analyzed but no error adjustment has been made",
         "Results are available and error adjustment has been made",
-        "Results are available and analyzed but no error adjustment has been made"
+        "Results are available but not analyzed",
+        "Due to unavailability of results the error adjustments have been made"
       ]
     }
   ]

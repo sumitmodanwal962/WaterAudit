@@ -16,23 +16,23 @@ export const BMAC: DVSCategory = {
       question: "What proportion of billed metered consumers are billed using actual meter readings in a standard billing cycle?",
       inputType: "select",
       options: [
-        "< 10%",
-        "10%-20%",
-        "30%-50%",
-        "50%-70%",
+        "> 90%",
         "70%-90%",
-        "> 90%"
+        "50%-70%",
+        "30%-50%",
+        "10%-20%",
+        "< 10%"
       ]
     },
     {
       question: "What is the frequency of consumer meter readings taken by the utility? If there are different meter reading schedules, what is the most common frequency for most customers?",
       inputType: "select",
       options: [
-        "Semi-annually",
-        "Quarterly",
-        "Once in two months",
+        "Once every week",
         "Monthly",
-        "Once every week"
+        "Once in two months",
+        "Quarterly",
+        "Semi-annually"
       ]
     },
     {
@@ -54,29 +54,29 @@ export const BMAC: DVSCategory = {
       question: "How detailed is the level of assessment during the internal review of BMAC data?",
       inputType: "select",
       options: [
-        "No evaluation",
-        "Minimal level of assessment",
-        "Moderate level of assessment",
+        "Comprehensive level of assessment",
         "Detailed level of assessment",
-        "Comprehensive level of assessment"
+        "Moderate level of assessment",
+        "Minimal level of assessment",
+        "No evaluation"
       ]
     },
     {
       question: "Has an independent reviewer recently examined the utility\u2019s billing data? If so, when?",
       inputType: "select",
       options: [
-        "Yes, but exactly not known",
-        "Yes, 5 years back",
+        "Within 2 years",
         "Within 2 to 5 years",
-        "Within 2 years"
+        "Yes, 5 years back",
+        "Yes, but exactly not known"
       ]
     },
     {
       question: "How comprehensive was the independent review of the billing data?",
       inputType: "select",
       options: [
-        "Not reviewed",
-        "Reviewed by third party authority officials"
+        "Reviewed by third party authority officials",
+        "Not reviewed"
       ]
     }
   ]
