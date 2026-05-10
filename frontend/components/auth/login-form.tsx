@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { motion } from "framer-motion"
-import { Eye, EyeOff, Mail, Lock } from "lucide-react"
+import { Eye, EyeOff, Mail, Lock, AlertCircle, CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -11,15 +11,56 @@ import { useRouter } from "next/navigation"
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-    setIsLoading(false)
-    router.push("/dashboard")
+    setError(null)
+    setSuccess(null)
+
+    const form = e.target as HTMLFormElement
+    const email = (form.elements.namedItem("email") as HTMLInputElement).value
+    const password = (form.elements.namedItem("password") as HTMLInputElement).value
+
+    // FastAPI's OAuth2PasswordRequestForm expects form-encoded data
+    const formData = new URLSearchParams()
+    formData.append("username", email)
+    formData.append("password", password)
+
+    try {
+      const response = await fetch("http://localhost:8000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: formData,
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        // Show the specific error from the backend
+        setError(data.detail || "Invalid email or password")
+        return
+      }
+
+      // Store token
+      localStorage.setItem("access_token", data.access_token)
+      
+      setSuccess("Login successful! Redirecting...")
+      
+      // Short delay so the user sees the success message
+      setTimeout(() => {
+        router.push("/dashboard")
+      }, 800)
+    } catch (err) {
+      setError("Unable to connect to the server. Please make sure the backend is running.")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -31,6 +72,30 @@ export function LoginForm() {
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.3 }}
     >
+      {/* Error Message */}
+      {error && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-sm"
+        >
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          <span>{error}</span>
+        </motion.div>
+      )}
+
+      {/* Success Message */}
+      {success && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center gap-2 px-4 py-3 rounded-xl bg-green-500/10 border border-green-500/20 text-green-600 dark:text-green-400 text-sm"
+        >
+          <CheckCircle2 className="w-4 h-4 shrink-0" />
+          <span>{success}</span>
+        </motion.div>
+      )}
+
       {/* Email Field */}
       <div className="space-y-2">
         <Label htmlFor="email" className="text-sm font-medium text-foreground">
@@ -40,10 +105,12 @@ export function LoginForm() {
           <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <Input
             id="email"
+            name="email"
             type="text"
             placeholder="Enter your email or username"
             className="pl-11 h-12 rounded-xl bg-input border-border focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
             required
+            onChange={() => setError(null)}
           />
         </div>
       </div>
@@ -57,10 +124,12 @@ export function LoginForm() {
           <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <Input
             id="password"
+            name="password"
             type={showPassword ? "text" : "password"}
             placeholder="Enter your password"
             className="pl-11 pr-11 h-12 rounded-xl bg-input border-border focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
             required
+            onChange={() => setError(null)}
           />
           <button
             type="button"
