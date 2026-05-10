@@ -8,9 +8,7 @@ import models
 import auth
 from database import engine, get_db
 
-# Drop and recreate all tables (DEV ONLY — removes existing data!)
-# Remove these two lines once your schema is stable
-models.Base.metadata.drop_all(bind=engine)
+# Create all tables (will not modify existing tables, only creates missing ones)
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="WaterAudit API")
