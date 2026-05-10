@@ -12,55 +12,55 @@ export const AOP: DVSCategory = {
       question: "How is the boundary integrity of the pressure zones in the system checked and ensured?",
       inputType: "select",
       options: [
-        "No defined pressure zones",
-        "Pressure zones defined on paper but not verified",
-        "Periodic manual boundary checks",
+        "Continuous monitoring with closed boundaries and automated alerts",
         "Regular boundary checks with documented results",
-        "Continuous monitoring with closed boundaries and automated alerts"
+        "Periodic manual boundary checks",
+        "Pressure zones defined on paper but not verified",
+        "No defined pressure zones"
       ]
     },
     {
       question: "How are one-time pressure readings (for example, from hydrants) recorded or collected?",
       inputType: "select",
       options: [
-        "Not collected",
-        "Occasionally collected during complaints or repairs",
-        "Collected periodically at selected points",
+        "Systematically collected at all key points as part of a monitoring program",
         "Regularly collected at representative points with documented results",
-        "Systematically collected at all key points as part of a monitoring program"
+        "Collected periodically at selected points",
+        "Occasionally collected during complaints or repairs",
+        "Not collected"
       ]
     },
     {
       question: "How is continuous pressure data collected through data loggers or telemetry systems?",
       inputType: "select",
       options: [
-        "No continuous data collection",
-        "Data loggers at a few critical points only",
-        "Data loggers at several representative points",
+        "Comprehensive SCADA network with real-time data and analytics",
         "Telemetry / SCADA at key distribution points with regular download",
-        "Comprehensive SCADA network with real-time data and analytics"
+        "Data loggers at several representative points",
+        "Data loggers at a few critical points only",
+        "No continuous data collection"
       ]
     },
     {
       question: "How is long-term continuous pressure monitoring carried out in the system?",
       inputType: "select",
       options: [
-        "No long-term monitoring",
-        "Occasional temporary monitoring campaigns",
-        "Annual monitoring campaigns at selected points",
+        "Permanent network-wide monitoring with real-time analysis",
         "Permanent loggers at key locations with periodic data review",
-        "Permanent network-wide monitoring with real-time analysis"
+        "Annual monitoring campaigns at selected points",
+        "Occasional temporary monitoring campaigns",
+        "No long-term monitoring"
       ]
     },
     {
       question: "How was the average operating pressure data collected or calculated?",
       inputType: "select",
       options: [
-        "Assumed or default value",
-        "Estimated from a few spot readings",
-        "Calculated from periodic pressure surveys",
+        "Calculated from comprehensive network modelling and verified monitoring data",
         "Calculated from continuous pressure data at key points (time- and flow-weighted)",
-        "Calculated from comprehensive network modelling and verified monitoring data"
+        "Calculated from periodic pressure surveys",
+        "Estimated from a few spot readings",
+        "Assumed or default value"
       ]
     }
   ]

@@ -16,33 +16,33 @@ export const BUAC: DVSCategory = {
       question: "What proportion of billed connections are unmetered?",
       inputType: "select",
       options: [
-        "< 10%",
-        "10%-20%",
-        "30%-50%",
-        "50%-70%",
+        "> 90%",
         "70%-90%",
-        "> 90%"
+        "50%-70%",
+        "30%-50%",
+        "10%-20%",
+        "< 10%"
       ]
     },
     {
       question: "What method is used to calculate or estimate water use for unmetered consumers?",
       inputType: "select",
       options: [
-        "Calculate approximately",
-        "Assessed based on guesses of consumption",
+        "Estimated per unmetered customer or based on representative system-wide statistical samples",
         "Derived from similar customer groups within the utility\u2019s metered population, but the sample size available was limited",
-        "Estimated per unmetered customer or based on representative system-wide statistical samples"
+        "Assessed based on guesses of consumption",
+        "Calculate approximately"
       ]
     },
     {
       question: "How frequently does the utility estimate consumption for unmetered consumers?",
       inputType: "select",
       options: [
-        "Monthly",
-        "Once two months",
-        "Quarterly",
+        "Annually",
         "Semi-annually",
-        "Annually"
+        "Quarterly",
+        "Once two months",
+        "Monthly"
       ]
     }
   ]

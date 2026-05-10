@@ -19,29 +19,29 @@ export const UUAC: DVSCategory = {
       question: "To what extent does the utility have clarity on unbilled unmetered water use?",
       inputType: "select",
       options: [
-        "Not known",
-        "Some instances are known, but a full record is not available",
+        "A complete record is available",
         "Most are identified and monitored",
-        "A complete record is available"
+        "Some instances are known, but a full record is not available",
+        "Not known"
       ]
     },
     {
       question: "What best describes the type of records the utility keeps for instances of unbilled unmetered consumption?",
       inputType: "select",
       options: [
-        "Record is not available",
+        "Complete records are available",
         "Records are available, but no complete documents are available",
-        "Complete records are available"
+        "Record is not available"
       ]
     },
     {
       question: "What method is used to quantify the bulk of unbilled unmetered water use?",
       inputType: "select",
       options: [
-        "Approximate estimation",
-        "Based on a mix of approximate estimates and event-specific assessments",
+        "Fully derived from individual event estimates",
         "Estimated using event counts combined with standard usage values",
-        "Fully derived from individual event estimates"
+        "Based on a mix of approximate estimates and event-specific assessments",
+        "Approximate estimation"
       ]
     }
   ]

@@ -20,33 +20,33 @@ export const UMAC: DVSCategory = {
       question: "What is the number of metered connections for which water use is not billed?",
       inputType: "select",
       options: [
-        "Not known",
+        "Checked based on total availability",
         "Projected based on total availability",
-        "Checked based on total availability"
+        "Not known"
       ]
     },
     {
       question: "What is the usual frequency of meter readings for unbilled consumers?",
       inputType: "select",
       options: [
-        "Annually",
-        "Semi-annually",
-        "Quarterly",
-        "Once two months",
+        "Regularly",
         "Monthly",
-        "Regularly"
+        "Once two months",
+        "Quarterly",
+        "Semi-annually",
+        "Annually"
       ]
     },
     {
       question: "How frequently are meter readings for unbilled consumers reviewed for potential errors?",
       inputType: "select",
       options: [
-        "No verification done",
-        "Once two years",
-        "Annually",
-        "Semi-annually",
+        "Monthly",
         "Once three months",
-        "Monthly"
+        "Semi-annually",
+        "Annually",
+        "Once two years",
+        "No verification done"
       ]
     }
   ]

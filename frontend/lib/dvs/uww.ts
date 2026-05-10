@@ -12,66 +12,66 @@ export const UWW: DVSCategory = {
       question: "How reliable are the data sources used for estimating wastewater generation (e.g., household surveys, water supply data, or design assumptions)?",
       inputType: "select",
       options: [
-        "Assumed design norms only",
-        "Fixed return ratio (no validation)",
-        "Derived from supply data (partial check)",
+        "Continuous metering with verified return ratio",
         "Field-verified per-capita discharge",
-        "Continuous metering with verified return ratio"
+        "Derived from supply data (partial check)",
+        "Fixed return ratio (no validation)",
+        "Assumed design norms only"
       ]
     },
     {
       question: "Are wastewater flow measurements at pumping stations, manholes, or treatment plants regularly verified for accuracy?",
       inputType: "select",
       options: [
-        "Not verified",
-        "Verified during fault events",
-        "Annual internal test",
+        "Continuous or SCADA-based verification",
         "Semi-annual calibration",
-        "Continuous or SCADA-based verification"
+        "Annual internal test",
+        "Verified during fault events",
+        "Not verified"
       ]
     },
     {
       question: "How consistent are the wastewater data records (daily, monthly, or annually) maintained across multiple agencies or departments?",
       inputType: "select",
       options: [
-        "No coordination",
-        "Irregular reporting",
-        "Annual reconciliation",
+        "Integrated centralized database",
         "Monthly cross-verification",
-        "Integrated centralized database"
+        "Annual reconciliation",
+        "Irregular reporting",
+        "No coordination"
       ]
     },
     {
       question: "Are flow meters and sensors in the wastewater system calibrated and maintained as per standard procedures?",
       inputType: "select",
       options: [
-        "Not calibrated",
-        "Irregular manual check",
-        "Annual internal calibration",
+        "Third-party certified calibration",
         "Bi-annual standard calibration",
-        "Third-party certified calibration"
+        "Annual internal calibration",
+        "Irregular manual check",
+        "Not calibrated"
       ]
     },
     {
       question: "How are missing data, meter malfunctions, or gaps in flow records identified and corrected in official reporting?",
       inputType: "select",
       options: [
-        "Not addressed",
-        "Manually corrected",
-        "Simple interpolation",
+        "Real-time SCADA correction",
         "Automated flagging",
-        "Real-time SCADA correction"
+        "Simple interpolation",
+        "Manually corrected",
+        "Not addressed"
       ]
     },
     {
       question: "What level of confidence does the utility have in the accuracy and completeness of wastewater generation and collection data?",
       inputType: "select",
       options: [
-        "Very Low",
-        "Low",
-        "Medium",
+        "Very High",
         "High",
-        "Very High"
+        "Medium",
+        "Low",
+        "Very Low"
       ]
     }
   ]

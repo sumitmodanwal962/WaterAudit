@@ -12,33 +12,33 @@ export const UC: DVSCategory = {
       question: "What is the default status shown in the worksheet for this data entry?",
       inputType: "select",
       options: [
-        "Default used with no review",
-        "Default accepted after basic check",
-        "Default value modified with rough estimate",
+        "Custom value entered based on verified data",
         "Custom value entered based on available data",
-        "Custom value entered based on verified data"
+        "Default value modified with rough estimate",
+        "Default accepted after basic check",
+        "Default used with no review"
       ]
     },
     {
       question: "How was the information or input for unauthorized consumption collected or derived?",
       inputType: "select",
       options: [
-        "Default value used (no investigation)",
-        "Rough estimate based on general assumptions",
-        "Estimate based on illegal connection surveys in some areas",
+        "Derived from comprehensive anti-theft programs with measured data",
         "Estimate based on systematic surveys and enforcement data",
-        "Derived from comprehensive anti-theft programs with measured data"
+        "Estimate based on illegal connection surveys in some areas",
+        "Rough estimate based on general assumptions",
+        "Default value used (no investigation)"
       ]
     },
     {
       question: "How effectively does the utility monitor and track unauthorized or illegal water use?",
       inputType: "select",
       options: [
-        "No monitoring at all",
-        "Reactive only (acts on complaints or tips)",
-        "Periodic field surveys in known problem areas",
+        "Continuous monitoring with technology (smart meters, GIS, DMA analysis) and dedicated enforcement",
         "Regular surveillance with dedicated teams and reporting",
-        "Continuous monitoring with technology (smart meters, GIS, DMA analysis) and dedicated enforcement"
+        "Periodic field surveys in known problem areas",
+        "Reactive only (acts on complaints or tips)",
+        "No monitoring at all"
       ]
     }
   ]

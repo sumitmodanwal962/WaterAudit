@@ -7,9 +7,10 @@ import { LoginForm } from "./login-form"
 import { RegisterForm } from "./register-form"
 
 type AuthTab = "login" | "register"
+type AuthMode = "login" | "register" | "tabs"
 
-export function AuthCard() {
-  const [activeTab, setActiveTab] = useState<AuthTab>("login")
+export function AuthCard({ mode = "tabs" }: { mode?: AuthMode }) {
+  const [activeTab, setActiveTab] = useState<AuthTab>(mode === "register" ? "register" : "login")
 
   return (
     <motion.div
@@ -18,9 +19,9 @@ export function AuthCard() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      {/* Mobile Logo - only shown on mobile */}
+      {/* Mobile Logo - only shown on mobile or when centered */}
       <motion.div
-        className="flex items-center justify-center gap-2 mb-6 lg:hidden"
+        className={`flex items-center justify-center gap-2 mb-6 ${mode === "tabs" ? "lg:hidden" : ""}`}
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4 }}
@@ -34,32 +35,46 @@ export function AuthCard() {
       {/* Card */}
       <div className="bg-card rounded-3xl shadow-xl shadow-primary/5 border border-border/50 overflow-hidden">
         {/* Tabs */}
-        <div className="flex border-b border-border">
-          {(["login", "register"] as AuthTab[]).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className="relative flex-1 py-4 text-sm font-semibold transition-colors"
-            >
-              <span
-                className={
-                  activeTab === tab
-                    ? "text-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                }
+        {mode === "tabs" && (
+          <div className="flex border-b border-border">
+            {(["login", "register"] as AuthTab[]).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className="relative flex-1 py-4 text-sm font-semibold transition-colors"
               >
-                {tab === "login" ? "Login" : "Register"}
-              </span>
-              {activeTab === tab && (
-                <motion.div
-                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
-                  layoutId="activeTab"
-                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                />
-              )}
-            </button>
-          ))}
-        </div>
+                <span
+                  className={
+                    activeTab === tab
+                      ? "text-foreground"
+                      : "text-muted-foreground hover:text-foreground"
+                  }
+                >
+                  {tab === "login" ? "Login" : "Register"}
+                </span>
+                {activeTab === tab && (
+                  <motion.div
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
+                    layoutId="activeTab"
+                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                  />
+                )}
+              </button>
+            ))}
+          </div>
+        )}
+        
+        {/* Header for single mode */}
+        {mode !== "tabs" && (
+          <div className="px-6 sm:px-8 pt-8 pb-2 text-center border-b border-border/50 bg-muted/20">
+            <h2 className="text-xl font-bold text-foreground">
+              {mode === "login" ? "Welcome Back" : "Create an Account"}
+            </h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              {mode === "login" ? "Sign in to continue to WaterAudit" : "Join us to manage your water usage"}
+            </p>
+          </div>
+        )}
 
         {/* Form Content */}
         <div className="p-6 sm:p-8 max-h-[70vh] overflow-y-auto">
