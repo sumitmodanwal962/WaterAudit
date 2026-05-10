@@ -10,57 +10,42 @@ export const LP: DVSCategory = {
   validationQuestions: [
     {
       question: "Are customer water meters usually installed near the boundary wall or on the property line?",
-      inputType: "select",
-      options: [
-        "Yes \u2014 standard practice to install at the boundary/property line",
-        "Mostly yes \u2014 at or near the boundary wall",
-        "About half at boundary, half inside",
-        "Mostly no \u2014 mixed locations with no standard",
-        "No \u2014 meters are inside the property at varying distances"
-      ]
+      inputType: "yesno"
     },
     {
       question: "How was the information about the average length of customer service lines collected or calculated?",
       inputType: "select",
       options: [
-        "Comprehensive measurement from GIS / as-built records",
-        "Measured for a statistically significant sample",
-        "Measured for a small sample of connections",
-        "Rough estimate based on typical plot sizes",
-        "Default assumption used (no measurement)"
+        "Data obtained from comprehensive mapping and complete customer inventory",
+        "Data derived from study-based sampling of a portion of the system",
+        "Provisionally estimated in the absence of precise data"
       ]
     },
     {
       question: "How is the mapping of customer service lines and meter locations updated and maintained?",
       inputType: "select",
       options: [
-        "GIS-based mapping updated continuously with field verification",
-        "GIS-based mapping updated annually",
-        "Basic digital records updated periodically",
-        "Paper records / sketches exist but are rarely updated",
-        "No mapping exists"
+        "Changes to the service line and meter location inventory are recorded and updated at least annually",
+        "Changes to the service line and meter location inventory are recorded, but updates occur less than once a year",
+        "Customer service line and meter location inventory is either not maintained or not kept up to date"
       ]
     },
     {
       question: "How often is the mapping of service lines verified in the field to ensure it matches actual ground conditions?",
       inputType: "select",
       options: [
-        "Verified regularly on a systematic / rolling basis",
-        "Verified annually on a sample basis",
-        "Verified once every few years",
-        "Verified only during major works",
-        "Never verified"
+        "Field validation is carried out, either through routine work order processes or dedicated validation projects",
+        "No field validation is performed"
       ]
     },
     {
-      question: "What is the policy that defines where the utility\u2019s ownership of the service line ends, and the customer\u2019s ownership begins?",
+      question: "What is the policy that defines where the utility’s ownership of the service line ends, and the customer’s ownership begins?",
       inputType: "select",
       options: [
-        "Clearly documented, legally enforceable policy that is consistently applied",
-        "Written policy exists and is mostly followed",
-        "Written policy exists but is inconsistently applied",
-        "Informal understanding only",
-        "No defined policy"
+        "Policy is clearly defined, and its implementation in practice is regularly followed",
+        "Policy is clearly defined, but its implementation in practice is uncertain",
+        "Policy exists but lacks clarity",
+        "No formal policy exists"
       ]
     }
   ]

@@ -12,55 +12,48 @@ export const AOP: DVSCategory = {
       question: "How is the boundary integrity of the pressure zones in the system checked and ensured?",
       inputType: "select",
       options: [
-        "Continuous monitoring with closed boundaries and automated alerts",
-        "Regular boundary checks with documented results",
-        "Periodic manual boundary checks",
-        "Pressure zones defined on paper but not verified",
-        "No defined pressure zones"
+        "Not applicable, as the system functions as a single pressure zone",
+        "Normally closed boundary valves between zones have been verified as fully closed within the past three years",
+        "Normally closed boundary valves between zones were last verified as fully closed over three years ago",
+        "Normally closed boundary valves between zones have not been verified to be fully closed"
       ]
     },
     {
       question: "How are one-time pressure readings (for example, from hydrants) recorded or collected?",
       inputType: "select",
       options: [
-        "Systematically collected at all key points as part of a monitoring program",
-        "Regularly collected at representative points with documented results",
-        "Collected periodically at selected points",
-        "Occasionally collected during complaints or repairs",
-        "Not collected"
+        "Pressure data is collected annually during routine system flushing and/or hydrant testing",
+        "Pressure data is collected only in response to low-pressure complaints or requests from new developments"
       ]
     },
     {
       question: "How is continuous pressure data collected through data loggers or telemetry systems?",
       inputType: "select",
       options: [
-        "Comprehensive SCADA network with real-time data and analytics",
-        "Telemetry / SCADA at key distribution points with regular download",
-        "Data loggers at several representative points",
-        "Data loggers at a few critical points only",
-        "No continuous data collection"
+        "Pressure is monitored at zone boundaries and at internal locations sufficient to represent the full pressure profile of the zones",
+        "Pressure is monitored at zone boundaries and at selected internal locations, but does not capture the full pressure profile",
+        "Pressure monitoring is conducted only at zone boundary points, such as supply entry points, PRVs",
+        "Pressure data is not monitored continuously"
       ]
     },
     {
       question: "How is long-term continuous pressure monitoring carried out in the system?",
       inputType: "select",
       options: [
-        "Permanent network-wide monitoring with real-time analysis",
-        "Permanent loggers at key locations with periodic data review",
-        "Annual monitoring campaigns at selected points",
-        "Occasional temporary monitoring campaigns",
-        "No long-term monitoring"
+        "Continuous, year-round data collection is conducted through permanent monitoring systems",
+        "Temporary data loggers are deployed with sufficient coverage to capture seasonal variations throughout the year",
+        "Temporary data loggers are deployed, but coverage is limited and does not capture seasonal variations throughout the year"
       ]
     },
     {
-      question: "How was the average operating pressure data collected or calculated?",
+      question: "How is continuous pressure data gathered?",
       inputType: "select",
       options: [
-        "Calculated from comprehensive network modelling and verified monitoring data",
-        "Calculated from continuous pressure data at key points (time- and flow-weighted)",
-        "Calculated from periodic pressure surveys",
-        "Estimated from a few spot readings",
-        "Assumed or default value"
+        "Derived from a hydraulic model that has not been field-calibrated in the past five years",
+        "Derived from a hydraulic model that has not been field-calibrated in the past five years",
+        "Calculated from field data as a weighted average, in accordance with methods outlined in the 'Manual on Water Supply Systems: Drink from Tap",
+        "A rough estimate is inferred from field measurements, without any formal analysis",
+        "Provisionally estimated in the absence of precise data"
       ]
     }
   ]
