@@ -20,7 +20,6 @@ export { LP } from "./lp";
 export { AOP } from "./aop";
 export { CRUC } from "./cruc";
 export { UWW } from "./uww";
-export { VPC } from "./vpc";
 
 // ── Convenience aggregates used by the data-input page ──────────
 
@@ -40,7 +39,6 @@ import { LP } from "./lp";
 import { AOP } from "./aop";
 import { CRUC } from "./cruc";
 import { UWW } from "./uww";
-import { VPC } from "./vpc";
 import { DVSCategory, DataInput, ValidationQuestion } from "./types";
 
 /** Ordered list of all DVS categories */
@@ -61,7 +59,6 @@ export const ALL_DVS_CATEGORIES: DVSCategory[] = [
   AOP,
   CRUC,
   UWW,
-  VPC,
 ];
 
 /** Flat list of all data inputs (from all categories) */
@@ -87,6 +84,7 @@ export const SUPPLEMENTARY_INPUTS: DataInput[] = [
   { key: "AnnualLeakageControlCost", label: "Annual Cost of Leakage Control", description: "Annual cost for DMA establishment, leakage detection, and O&M", type: "currency", unit: "INR" },
   { key: "TotalWaterLosses", label: "Total Water Losses", description: "Total water losses in the distribution system", type: "volume", unit: "MLD" },
   { key: "ApparentLosses", label: "Apparent Losses", description: "Losses due to meter inaccuracies, unauthorized consumption, and data errors", type: "volume", unit: "MLD" },
+  { key: "VPC", label: "Variable Production Cost", description: "Variable cost of producing one unit of water", type: "currency", unit: "INR/MLD" },
   { key: "HouseholdsWithConnection", label: "Households With Direct Connection", description: "Total households that have direct water supply connections", type: "integer", unit: "count" },
   { key: "TotalHouseholds", label: "Total Households in Service Area", description: "Total households in the service area", type: "integer", unit: "count" },
   { key: "WaterSupplied", label: "Water Supplied to Network", description: "Total water supplied to the distribution system", type: "volume", unit: "litres" },
