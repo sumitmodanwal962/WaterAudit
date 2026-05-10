@@ -12,6 +12,8 @@ import {
   MapPin,
   Building2,
   Briefcase,
+  AlertCircle,
+  CheckCircle2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -31,15 +33,77 @@ export function RegisterForm() {
   const [userType, setUserType] = useState<UserType>("individual")
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
+  const [gender, setGender] = useState<string>("")
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-    setIsLoading(false)
-    router.push("/dashboard")
+    setError(null)
+    setSuccess(null)
+
+    const form = e.target as HTMLFormElement
+
+    const email = (form.elements.namedItem("regEmail") as HTMLInputElement).value
+    const password = (form.elements.namedItem("regPassword") as HTMLInputElement).value
+    const contact = (form.elements.namedItem("contact") as HTMLInputElement).value
+    const address = (form.elements.namedItem("address") as HTMLInputElement).value
+    const location = (form.elements.namedItem("location") as HTMLInputElement).value
+
+    // Validate password length
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters long")
+      setIsLoading(false)
+      return
+    }
+
+    // Build the request body
+    const body: Record<string, string> = {
+      email,
+      password,
+      user_type: userType,
+      contact,
+      address,
+      location,
+    }
+
+    if (userType === "individual") {
+      body.full_name = (form.elements.namedItem("fullName") as HTMLInputElement).value
+      body.gender = gender
+    } else {
+      body.org_name = (form.elements.namedItem("orgName") as HTMLInputElement).value
+      body.designation = (form.elements.namedItem("designation") as HTMLInputElement).value
+    }
+
+    try {
+      const response = await fetch("http://localhost:8000/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        setError(data.detail || "Registration failed. Please try again.")
+        return
+      }
+
+      setSuccess("Account created successfully! Redirecting to login...")
+
+      // Auto-switch to login tab after a short delay
+      setTimeout(() => {
+        router.push("/login")
+      }, 1500)
+    } catch (err) {
+      setError("Unable to connect to the server. Please make sure the backend is running.")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const formVariants = {
@@ -57,6 +121,30 @@ export function RegisterForm() {
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.3 }}
     >
+      {/* Error Message */}
+      {error && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-sm"
+        >
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          <span>{error}</span>
+        </motion.div>
+      )}
+
+      {/* Success Message */}
+      {success && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center gap-2 px-4 py-3 rounded-xl bg-green-500/10 border border-green-500/20 text-green-600 dark:text-green-400 text-sm"
+        >
+          <CheckCircle2 className="w-4 h-4 shrink-0" />
+          <span>{success}</span>
+        </motion.div>
+      )}
+
       {/* User Type Toggle */}
       <div className="space-y-2">
         <Label className="text-sm font-medium text-foreground">
@@ -107,10 +195,12 @@ export function RegisterForm() {
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input
                     id="fullName"
+                    name="fullName"
                     type="text"
                     placeholder="Enter your full name"
                     className="pl-11 h-12 rounded-xl bg-input border-border focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
                     required
+                    onChange={() => setError(null)}
                   />
                 </div>
               </div>
@@ -120,7 +210,7 @@ export function RegisterForm() {
                 <Label htmlFor="gender" className="text-sm font-medium text-foreground">
                   Gender
                 </Label>
-                <Select required>
+                <Select required onValueChange={(value) => setGender(value)}>
                   <SelectTrigger className="h-12 rounded-xl bg-input border-border focus:border-primary focus:ring-2 focus:ring-primary/20">
                     <SelectValue placeholder="Select your gender" />
                   </SelectTrigger>
@@ -144,10 +234,12 @@ export function RegisterForm() {
                   <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input
                     id="orgName"
+                    name="orgName"
                     type="text"
                     placeholder="Enter organisation name"
                     className="pl-11 h-12 rounded-xl bg-input border-border focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
                     required
+                    onChange={() => setError(null)}
                   />
                 </div>
               </div>
@@ -161,10 +253,12 @@ export function RegisterForm() {
                   <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input
                     id="designation"
+                    name="designation"
                     type="text"
                     placeholder="Enter your designation"
                     className="pl-11 h-12 rounded-xl bg-input border-border focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
                     required
+                    onChange={() => setError(null)}
                   />
                 </div>
               </div>
@@ -174,16 +268,18 @@ export function RegisterForm() {
           {/* Email Field */}
           <div className="space-y-2">
             <Label htmlFor="regEmail" className="text-sm font-medium text-foreground">
-              Email / Username
+              Email
             </Label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <Input
                 id="regEmail"
+                name="regEmail"
                 type="email"
                 placeholder="Enter your email"
                 className="pl-11 h-12 rounded-xl bg-input border-border focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
                 required
+                onChange={() => setError(null)}
               />
             </div>
           </div>
@@ -197,10 +293,12 @@ export function RegisterForm() {
               <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <Input
                 id="contact"
+                name="contact"
                 type="tel"
                 placeholder="Enter your phone number"
                 className="pl-11 h-12 rounded-xl bg-input border-border focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
                 required
+                onChange={() => setError(null)}
               />
             </div>
           </div>
@@ -214,10 +312,12 @@ export function RegisterForm() {
               <MapPin className="absolute left-3 top-3 w-5 h-5 text-muted-foreground" />
               <Input
                 id="address"
+                name="address"
                 type="text"
                 placeholder="Enter your address"
                 className="pl-11 h-12 rounded-xl bg-input border-border focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
                 required
+                onChange={() => setError(null)}
               />
             </div>
           </div>
@@ -231,10 +331,12 @@ export function RegisterForm() {
               <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <Input
                 id="location"
+                name="location"
                 type="text"
                 placeholder="Enter your location"
                 className="pl-11 h-12 rounded-xl bg-input border-border focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
                 required
+                onChange={() => setError(null)}
               />
             </div>
           </div>
@@ -248,10 +350,13 @@ export function RegisterForm() {
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <Input
                 id="regPassword"
+                name="regPassword"
                 type={showPassword ? "text" : "password"}
-                placeholder="Create a password"
+                placeholder="Create a password (min 6 characters)"
                 className="pl-11 pr-11 h-12 rounded-xl bg-input border-border focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
                 required
+                minLength={6}
+                onChange={() => setError(null)}
               />
               <button
                 type="button"
