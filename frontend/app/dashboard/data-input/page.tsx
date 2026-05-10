@@ -4,6 +4,7 @@ import { useState } from "react"
 import { ArrowLeft, CheckCircle2, ShieldAlert, ShieldCheck } from "lucide-react"
 import Link from "next/link"
 import { DATA_INPUTS, VALIDATION_QUESTIONS, CATEGORY_MAP } from "@/lib/data"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function DataInputPage() {
   const [dataValues, setDataValues] = useState<Record<string, string>>({});
@@ -151,15 +152,16 @@ export default function DataInputPage() {
                       <div className="ml-9">
                         {/* Yes / No */}
                         {q.inputType === "yesno" && (
-                          <div className="flex gap-3">
-                            <label className="flex-1 flex items-center justify-center gap-2 cursor-pointer rounded-xl border border-slate-200 p-3 hover:border-[#0284c7] hover:bg-[#f0f9ff] transition-all has-[:checked]:border-[#0284c7] has-[:checked]:bg-[#f0f9ff] has-[:checked]:ring-1 has-[:checked]:ring-[#0284c7]">
-                              <input type="radio" name={`q_${activeModalCategory}_${idx}`} value="yes" className="w-4 h-4 text-[#0284c7] focus:ring-[#0284c7]" />
-                              <span className="text-sm font-medium text-slate-700">Yes</span>
-                            </label>
-                            <label className="flex-1 flex items-center justify-center gap-2 cursor-pointer rounded-xl border border-slate-200 p-3 hover:border-[#0284c7] hover:bg-[#f0f9ff] transition-all has-[:checked]:border-[#0284c7] has-[:checked]:bg-[#f0f9ff] has-[:checked]:ring-1 has-[:checked]:ring-[#0284c7]">
-                              <input type="radio" name={`q_${activeModalCategory}_${idx}`} value="no" className="w-4 h-4 text-[#0284c7] focus:ring-[#0284c7]" />
-                              <span className="text-sm font-medium text-slate-700">No</span>
-                            </label>
+                          <div className="max-w-xs">
+                            <Select name={`q_${activeModalCategory}_${idx}`}>
+                              <SelectTrigger className="w-full bg-white">
+                                <SelectValue placeholder="Select an option" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="yes">Yes</SelectItem>
+                                <SelectItem value="no">No</SelectItem>
+                              </SelectContent>
+                            </Select>
                           </div>
                         )}
 
@@ -206,13 +208,19 @@ export default function DataInputPage() {
 
                         {/* Select with explicit domain-specific options */}
                         {q.inputType === "select" && q.options && (
-                          <div className="space-y-2">
-                            {q.options.map((opt, oIdx) => (
-                              <label key={oIdx} className="flex items-start gap-3 cursor-pointer p-2.5 rounded-xl border border-transparent hover:bg-slate-50 hover:border-slate-200 transition-all has-[:checked]:bg-[#f0f9ff] has-[:checked]:border-[#0284c7]">
-                                <input type="radio" name={`q_${activeModalCategory}_${idx}`} value={String(oIdx)} className="w-4 h-4 mt-0.5 text-[#0284c7] focus:ring-[#0284c7] border-gray-300 shrink-0" />
-                                <span className="text-sm text-slate-700 font-medium">{opt}</span>
-                              </label>
-                            ))}
+                          <div className="max-w-full">
+                            <Select name={`q_${activeModalCategory}_${idx}`}>
+                              <SelectTrigger className="w-full bg-white text-left text-sm h-auto min-h-10 py-2.5">
+                                <SelectValue placeholder="Select an option" />
+                              </SelectTrigger>
+                              <SelectContent className="max-w-[calc(100vw-3rem)] sm:max-w-xl">
+                                {q.options.map((opt, oIdx) => (
+                                  <SelectItem key={oIdx} value={String(oIdx)} className="text-sm whitespace-normal py-2 leading-snug">
+                                    {opt}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </div>
                         )}
                       </div>
