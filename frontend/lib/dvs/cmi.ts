@@ -9,106 +9,89 @@ export const CMI: DVSCategory = {
   ],
   validationQuestions: [
     {
-      question: "Were there any customers with metered water connections during the audit year?",
+      question: "Did the audit period include any metered customer water usage?",
       inputType: "yesno"
     },
     {
       question: "Are customer meters tested only when a complaint or billing issue is reported?",
       inputType: "select",
       options: [
-        "Comprehensive proactive testing program; complaints are rare",
-        "Primarily proactive testing with complaints handled separately",
-        "Mix of complaint-based and scheduled proactive testing",
-        "Mostly on complaint, with very limited proactive testing",
-        "Yes, only on complaint"
+        "Responsive testing has been conducted",
+        "No responsive testing has been conducted"
       ]
     },
     {
-      question: "For small-size customer meters, how often are meters tested proactively (apart from complaint-based testing)?",
+      question: "What is the frequency of proactive testing for small-sized customer meters?",
       inputType: "select",
       options: [
-        "Every 1\u20133 years or per manufacturer recommendation",
-        "Once every 3\u20135 years",
-        "Once every 5\u201310 years",
-        "Only when meter age exceeds 10+ years",
-        "No proactive testing"
+        "This activity is ongoing and conducted annually",
+        "This activity is performed on a repetitive basis and was last carried out within two years preceding the audit period",
+        "Although no testing was performed, a minimum of 10% of the meter stock was replaced within the two years preceding the audit period",
+        "This activity is performed on a repeated basis and was last carried out within the five years preceding the audit period",
+        "This activity is not performed regularly; however, it was carried out within the five years preceding the audit period",
+        "This is not performed on a periodic basis, and the last assessment was conducted over five years before the audit period",
+        "No proactive testing of small consumer meters has been undertaken to date"
       ]
     },
     {
-      question: "Which types of small-size customer meters are covered under proactive testing activities?",
+      question: "What types of meters are included in the proactive testing program for small-sized customer meters?",
       inputType: "select",
       options: [
-        "All meter types comprehensively as per a documented schedule",
-        "All meter types on a rotational / sampling basis",
-        "Meters in high-consumption areas only",
-        "Only very old or suspected faulty meters",
-        "None"
+        "Proactive testing is conducted using a representative sample of small meters",
+        "Testing activities focus on selected groups of meters, with priority given to the oldest meters"
       ]
     },
     {
-      question: "For medium and large customer meters, how often are proactive tests carried out?",
+      question: "What is the frequency of the proactive testing program for medium and large-sized customer meters?",
       inputType: "select",
       options: [
-        "Annually or more frequently",
-        "Once every 1\u20133 years",
-        "Once every 5\u201310 years",
-        "Only when meter age exceeds 10+ years",
-        "No proactive testing"
+        "This activity is ongoing and is performed annually",
+        "This activity is performed on a recurring basis and was completed within the last five years, but it is carried out less frequently than annually",
+        "This activity is not performed regularly; however, a testing effort was carried out within the five years preceding the audit period",
+        "This activity is not performed regularly, and the last testing effort was conducted over five years before the audit period",
+        "No proactive testing of large meters has been undertaken to date"
       ]
     },
     {
-      question: "Which types of medium and large customer meters are included in the proactive testing program?",
+      question: "How does the utility define the meters included in proactive testing for medium and large-sized customers?",
       inputType: "select",
       options: [
-        "All medium and large meters comprehensively as per a documented schedule",
-        "All medium and large meters on a rotational / sampling basis",
-        "Bulk, industrial, and major commercial meters",
-        "Only bulk or industrial meters",
-        "None"
+        "A proactive programme is in place wherein all large meters follow an established testing schedule",
+        "Testing activities focus on selected meter groups, particularly those associated with high-revenue accounts"
       ]
     },
     {
       question: "How was the input data for this section collected or derived?",
       inputType: "select",
       options: [
-        "Derived from comprehensive meter testing and analysis program",
-        "Derived from statistically significant meter test sample",
-        "Derived from meter test results of a small sample",
-        "Rough estimate based on experience / assumption",
-        "Default value used (no data collection)"
+        "Derived from the latest meter accuracy tests, reflecting a complete assessment of all meter performance characteristics",
+        "Although no meter accuracy test results were applied, a minimum of 50% of the meter stock was replaced within the two years preceding the audit period",
+        "Derived from the latest meter accuracy testing, reflecting the full range of meter performance characteristics",
+        "Although meter accuracy test data or manufacturer specifications are cited, they have not been evaluated or incorporated into the calculation process",
+        "Derived as an approximation in the absence of any customer meter testing data"
       ]
     },
     {
-      question: "Has the input data been reviewed by a qualified expert familiar with the standard water audit methodology?",
-      inputType: "select",
-      options: [
-        "Reviewed and certified by an accredited water audit expert",
-        "Reviewed by an external consultant",
-        "Reviewed internally by trained staff",
-        "Reviewed internally by non-specialist staff",
-        "No review"
-      ]
+      question: "Did an expert familiar with the CPHEEO manual review the input derivation?",
+      inputType: "yesno"
     },
     {
       question: "How frequently are customer meters replaced, and for which categories of meters?",
       inputType: "select",
       options: [
-        "Comprehensive age-based and performance-based replacement program for all categories",
-        "Scheduled replacement program for most categories",
-        "Periodic replacement for some categories (e.g., oldest meters)",
-        "Replaced only on failure",
-        "No replacement program"
+        "Meter replacement is undertaken proactively, informed by accuracy test results and evaluations of long-term performance trends",
+        "A proactive annual replacement programme is implemented for specific meter groups, prioritizing those identified by age",
+        "Meter replacement occurs solely in cases of total failure or specific exceptional situations",
+        "No information available"
       ]
     },
     {
-      question: "How reliable are the records related to meter installation and maintenance?",
+      question: "How trustworthy are the records related to meter installation and maintenance?",
       inputType: "select",
       options: [
-        "Comprehensive digital asset management system with full history",
-        "Digital records (database or GIS) with regular updates",
-        "Basic paper or spreadsheet records",
-        "Incomplete or inconsistent paper records",
-        "No records maintained"
+        "Comprehensive installation records are kept, documenting the installation date, type, size, and manufacturer of each meter",
+        "Meter installation records exist, but they lack essential information including installation date, type, size, and manufacturer",
+        "Documentation of installed meters is not being maintained"
       ]
     }
   ]

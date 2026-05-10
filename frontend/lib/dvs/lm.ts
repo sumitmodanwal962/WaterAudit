@@ -9,47 +9,32 @@ export const LM: DVSCategory = {
   ],
   validationQuestions: [
     {
-      question: "How was the data on the length of water mains collected or calculated?",
+      question: "In what method was the data on the length of water mains collected?",
       inputType: "select",
       options: [
-        "Extracted from a field-verified and regularly updated GIS database",
-        "Extracted from a GIS database",
-        "Measured from updated paper maps or CAD drawings",
-        "Derived from old paper maps or design drawings",
-        "Rough estimate or assumed value"
+        "Verified directly from mains inventory records (GIS, logbooks, and related documentation)",
+        "Provisionally estimated in the absence of precise data"
       ]
     },
     {
-      question: "Are fire hydrant connections and laterals included in the total length of mains?",
-      inputType: "select",
-      options: [
-        "Yes, fully included based on measured data",
-        "Yes, included based on estimates",
-        "Partially included",
-        "No, excluded entirely",
-        "Not sure / unknown"
-      ]
+      question: "Does the input derivation include hydrant laterals?",
+      inputType: "yesno"
     },
     {
       question: "How is the record of water mains (like GIS map, asset register, or ledger) updated and maintained?",
       inputType: "select",
       options: [
-        "Continuously updated in real time or near-real time",
-        "Updated annually with new installations and replacements",
-        "Updated periodically (every few years)",
-        "Records exist but are rarely updated",
-        "No records maintained"
+        "Additions and subtractions in the mains inventory (GIS, logbooks, etc.) are recorded and updated at least annually",
+        "Additions and subtractions to the mains inventory (GIS, logbooks, etc.) are recorded, but updates are performed less than annually",
+        "Mains inventory (GIS, logbooks, etc.) is either not maintained or not kept up to date"
       ]
     },
     {
       question: "How often is the mains inventory (GIS or records) verified in the field to ensure it matches actual ground conditions?",
       inputType: "select",
       options: [
-        "Verified regularly on a systematic / rolling basis",
-        "Verified annually on a sample basis",
-        "Verified once every few years",
-        "Verified only during major projects or repairs",
-        "Never verified in the field"
+        "Field validation performed",
+        "No field validation is performed, either during routine operations or through dedicated validation projects"
       ]
     }
   ]
