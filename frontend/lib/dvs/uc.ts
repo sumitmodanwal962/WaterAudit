@@ -12,33 +12,28 @@ export const UC: DVSCategory = {
       question: "What is the default status shown in the worksheet for this data entry?",
       inputType: "select",
       options: [
-        "Custom value entered based on verified data",
-        "Custom value entered based on available data",
-        "Default value modified with rough estimate",
-        "Default accepted after basic check",
-        "Default used with no review"
+        "The default value is applied because a custom option was selected but no corresponding value was entered"
       ]
     },
     {
       question: "How was the information or input for unauthorized consumption collected or derived?",
       inputType: "select",
       options: [
-        "Derived from comprehensive anti-theft programs with measured data",
-        "Estimate based on systematic surveys and enforcement data",
-        "Estimate based on illegal connection surveys in some areas",
-        "Rough estimate based on general assumptions",
-        "Default value used (no investigation)"
+        "The custom volume is based on findings from a comprehensive system-wide study",
+        "The custom volume is derived by extrapolating results from a system-wide study that sampled a defined portion of the network",
+        "The custom volume is derived by extrapolating from identified cases of unauthorized consumption for which no backbilling was applied",
+        "Approximated due to insufficient supporting data"
       ]
     },
     {
-      question: "How effectively does the utility monitor and track unauthorized or illegal water use?",
+      question: "How effectively do the utility monitor and track unauthorized or illegal water use?",
       inputType: "select",
       options: [
-        "Continuous monitoring with technology (smart meters, GIS, DMA analysis) and dedicated enforcement",
-        "Regular surveillance with dedicated teams and reporting",
-        "Periodic field surveys in known problem areas",
-        "Reactive only (acts on complaints or tips)",
-        "No monitoring at all"
+        "Comprehensive system-wide investigations into unauthorized consumption have been conducted and documented, extending beyond merely reactive detection of incidents",
+        "Only limited investigations have been conducted into unauthorized consumption, primarily addressing incidents identified reactively, with comprehensive documentation lacking",
+        "All discovered events have been documented",
+        "Only a portion of discovered events has been documented; several others have not been recorded",
+        "This parameter is not currently tracked"
       ]
     }
   ]
