@@ -7,6 +7,9 @@ export const UMAC: DVSCategory = {
   inputs: [
     { key: "UMAC", label: "Unbilled Metered Authorized Consumption", description: "Unbilled but metered authorized water consumption", type: "volume", unit: "MLD" },
   ],
+  skipRules: [
+    { questionIndex: 0, triggerValue: "no", skipQuestionIndices: [1, 2, 3, 4] },
+  ],
   validationQuestions: [
     {
       question: "Were there any metered connections where water use went unbilled during the audit year?",
