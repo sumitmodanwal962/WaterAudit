@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useRouter } from "next/navigation"
+import { useAuth } from "@/contexts/AuthContext"
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
@@ -14,6 +15,7 @@ export function LoginForm() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const router = useRouter()
+  const { login } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -47,8 +49,8 @@ export function LoginForm() {
         return
       }
 
-      // Store token
-      localStorage.setItem("access_token", data.access_token)
+      // Store token and update context
+      await login(data.access_token)
       
       setSuccess("Login successful! Redirecting...")
       

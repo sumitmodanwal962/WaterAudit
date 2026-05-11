@@ -32,7 +32,7 @@ export default function CreateProjectPage() {
     setSubmitting(true)
     setError(null)
     try {
-      await createProject({
+      const project = await createProject({
         title: form.title,
         scope: form.scope || undefined,
         project_type: form.project_type || undefined,
@@ -43,7 +43,7 @@ export default function CreateProjectPage() {
         lead_auditor_name: form.lead_name || undefined,
         lead_auditor_email: form.lead_email || undefined,
       })
-      router.push("/dashboard?created=1")
+      router.push(`/dashboard/data-input?projectId=${project.id}`)
     } catch (e: any) {
       setError(e.message || "Failed to create project")
       setSubmitting(false)
