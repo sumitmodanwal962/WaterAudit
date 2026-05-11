@@ -41,16 +41,25 @@ export default function DataInputPage() {
   // Safe fallback if `categoryId` not found
   const modalQuestions = activeModalCategory ? VALIDATION_QUESTIONS[activeModalCategory] : [];
 
-  // Gate question logic: if Q0 is "No" for categories with a gate, skip remaining questions
+  // Skip rules logic: compute which question indices should be hidden
   const activeCategory = activeModalCategory
     ? ALL_DVS_CATEGORIES.find(c => c.categoryKey === activeModalCategory)
     : null;
-  const gateIndex = activeCategory?.gateQuestionIndex;
-  const isGateClosed = gateIndex !== undefined
-    && modalAnswers[`q_${activeModalCategory}_${gateIndex}`] === "no";
-  const visibleQuestions = modalQuestions && isGateClosed
-    ? modalQuestions.slice(0, gateIndex + 1)
-    : modalQuestions;
+
+  const skippedIndices = new Set<number>();
+  if (activeCategory?.skipRules) {
+    for (const rule of activeCategory.skipRules) {
+      const answerKey = `q_${activeModalCategory}_${rule.questionIndex}`;
+      if (modalAnswers[answerKey] === rule.triggerValue) {
+        rule.skipQuestionIndices.forEach(i => skippedIndices.add(i));
+      }
+    }
+  }
+
+  // Build all questions with original indices and skip status
+  const allQuestionsWithMeta = modalQuestions
+    ? modalQuestions.map((q, idx) => ({ ...q, originalIndex: idx, isSkipped: skippedIndices.has(idx) }))
+    : [];
 
   return (
     <div className="mx-auto max-w-6xl space-y-8 pb-20">
@@ -156,13 +165,20 @@ export default function DataInputPage() {
             </div>
             
             <div className="p-6 overflow-y-auto space-y-6 bg-slate-50 flex-1">
-              {visibleQuestions && visibleQuestions.length > 0 ? (
+              {allQuestionsWithMeta && allQuestionsWithMeta.length > 0 ? (
                 <>
-                  {visibleQuestions.map((q, idx) => (
-                    <div key={idx} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+                  {allQuestionsWithMeta.map((q) => (
+                    <div
+                      key={q.originalIndex}
+                      className={`bg-white border rounded-2xl p-5 shadow-sm transition-all ${
+                        q.isSkipped
+                          ? "opacity-40 pointer-events-none select-none border-slate-100"
+                          : "border-slate-200"
+                      }`}
+                    >
                       <p className="font-semibold text-[#0f172a] mb-4 flex gap-3 text-sm">
                         <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#e0f2fe] text-xs font-bold text-[#0284c7]">
-                          {idx + 1}
+                          {q.originalIndex + 1}
                         </span>
                         <span className="mt-0.5">{q.question}</span>
                       </p>
@@ -172,8 +188,8 @@ export default function DataInputPage() {
                         {q.inputType === "yesno" && (
                           <div className="max-w-xs">
                             <Select
-                              name={`q_${activeModalCategory}_${idx}`}
-                              onValueChange={(value) => handleModalAnswer(`q_${activeModalCategory}_${idx}`, value)}
+                              name={`q_${activeModalCategory}_${q.originalIndex}`}
+                              onValueChange={(value) => handleModalAnswer(`q_${activeModalCategory}_${q.originalIndex}`, value)}
                             >
                               <SelectTrigger className="w-full bg-white">
                                 <SelectValue placeholder="Select an option" />
@@ -231,8 +247,8 @@ export default function DataInputPage() {
                         {q.inputType === "select" && q.options && (
                           <div className="max-w-full">
                             <Select
-                              name={`q_${activeModalCategory}_${idx}`}
-                              onValueChange={(value) => handleModalAnswer(`q_${activeModalCategory}_${idx}`, value)}
+                              name={`q_${activeModalCategory}_${q.originalIndex}`}
+                              onValueChange={(value) => handleModalAnswer(`q_${activeModalCategory}_${q.originalIndex}`, value)}
                             >
                               <SelectTrigger className="w-full bg-white text-left text-sm h-auto min-h-10 py-2.5">
                                 <SelectValue placeholder="Select an option" />
