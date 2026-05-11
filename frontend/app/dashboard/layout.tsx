@@ -1,11 +1,46 @@
-import { Bell, Settings, Droplets } from "lucide-react"
+"use client"
+
+import { useState, useRef, useEffect } from "react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { 
+  Bell, Settings, Droplets, ChevronDown, User, LogOut, 
+  X, Menu, LayoutDashboard, FileText, BarChart3, HelpCircle 
+} from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { useAuth } from "@/contexts/AuthContext"
+
+const navLinks = [
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/dashboard/audits", label: "Audits", icon: FileText },
+  { href: "/dashboard/reports", label: "Reports", icon: BarChart3 },
+  { href: "/dashboard/help", label: "Help", icon: HelpCircle },
+]
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const pathname = usePathname()
+  const { user, logout } = useAuth()
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
+
+  const displayName = user?.name || user?.email?.split('@')[0] || "User"
+  const initials = displayName.charAt(0).toUpperCase()
+
   return (
     <div className="min-h-screen bg-[#f0f6ff]">
       {/* Top Navigation Bar */}
