@@ -6,6 +6,10 @@ export interface ValidationQuestion {
   options?: string[];
   unit?: string;
   placeholder?: string;
+  /** Hidden weight of this question (e.g., 20 for 20%) */
+  weight?: number;
+  /** Hidden score for each option, parallel to 'options' or for yesno [yes_score, no_score] */
+  scores?: number[];
 }
 
 export interface DataInput {

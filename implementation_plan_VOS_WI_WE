@@ -1,0 +1,112 @@
+# Designing DVS Scoring for VOS_WI_WE
+
+Currently, the DVS grade calculator uses a very simple method where it assumes the index of the selected option is the score. This does not accurately reflect the physical significance of the questions (some are far more important than others) and assumes all options are ordered strictly worst-to-best.
+
+To compute an accurate score out of 10, we need to introduce **Weights** (how much the question contributes to the category score) and **Option Scores** (points from 0-10 assigned to each specific answer).
+
+## Proposed Weights and Scores for VOS_WI_WE
+
+I have analyzed the physical and practical significance of each question regarding Volume from Own Sources (VOS). Here is the proposed scoring matrix:
+
+### 1. Gate Question: Did the utility produce and supply water from its own sources?
+- **Weight**: 0% (It's a routing/gate question)
+- **Scores**: Yes (Proceed), No (Skip all, category score becomes N/A or 0 depending on broader logic)
+
+### 2. Percentage of self-produced water measured through functional flow meters?
+- **Significance**: Foundation of the water balance. If you don't measure the source, all other calculations are estimates.
+- **Weight**: **20%**
+- **Scores**: 
+  - `> 90%` = 10
+  - `80-90%` = 8
+  - `60-80%` = 6
+  - `40-60%` = 4
+  - `20-40%` = 2
+  - `< 20%` = 0
+
+### 3. Electronic calibration frequency of source flow meters?
+- **Significance**: Ensures primary meter sensors are electrically accurate.
+- **Weight**: **15%**
+- **Scores**: 
+  - `Quarterly` = 10
+  - `Semi-Annually` = 8
+  - `Annually` = 6
+  - `Once in 2 years` = 4
+  - `Not done for the last 5 years` = 0
+  - `No need to calibrate` = 10 (Applicable for some modern solid-state/mag meters, assuming verified)
+
+### 4. Data transfer integrity in electronic calibration?
+- **Significance**: SCADA/telemetry integrity.
+- **Weight**: **10%**
+- **Scores**: 
+  - `Both secondary and tertiary devices` = 10
+  - `Only at secondary devices (non availability of tertiary)` = 7
+  - `Only at secondary devices` = 4
+  - `Not checked or not known` = 0
+
+### 5. Availability of electronic calibration report?
+- **Significance**: Evidence and documentation.
+- **Weight**: **5%**
+- **Scores**: `Yes` = 10, `No` = 0
+
+### 6. On-site metering flow accuracy testing frequency?
+- **Significance**: Physical in-situ verification (drop tests/insertion meters) is critical to uncover real mechanical wear and tear.
+- **Weight**: **15%**
+- **Scores**: 
+  - `Quarterly` = 10
+  - `Semi-Annually` = 8
+  - `Annually` = 6
+  - `Once in two years` = 4
+  - `Not from last 5 years` = 0
+
+### 7. Availability of on-site flow accuracy test report?
+- **Significance**: Evidence and documentation.
+- **Weight**: **5%**
+- **Scores**: `Yes` = 10, `No` = 0
+
+### 8. Total volume-weighted average from in-situ flow tests?
+- **Significance**: The actual error margin of the meters. Extreme physical significance for calculating apparent losses.
+- **Weight**: **15%**
+- **Scores**: 
+  - `≤ (±2%)` = 10
+  - `(±2% to ±5%)` = 5
+  - `≥ (±5%)` = 0
+
+### 9. Compliance with the Drink from Tap manual?
+- **Significance**: Adherence to standard operating procedures.
+- **Weight**: **5%**
+- **Scores**: `Yes` = 10, `No` = 0
+
+### 10. Frequency of recording finished water meter readings?
+- **Significance**: Data granularity for tracking anomalies.
+- **Weight**: **5%**
+- **Scores**: 
+  - `Continuous` = 10
+  - `Daily` = 8
+  - `Once every week` = 5
+  - `Once every month` = 2
+  - `Not every month` = 0
+
+### 11. Frequency of checking data for anomalies/errors?
+- **Significance**: Quality assurance. Unchecked continuous data is useless if it's drifting.
+- **Weight**: **5%**
+- **Scores**: 
+  - `Daily or periodically` = 10
+  - `Once every week` = 7
+  - `Once every month` = 4
+  - `Not on every month` = 0
+  - `Not known or not verified periodically` = 0
+
+*(Total weights sum up to 100%)*
+
+## Proposed Code Changes
+
+To implement this, I suggest:
+
+1. **Update `ValidationQuestion` interface** in `frontend/lib/dvs/types.ts` to support optional `weight` (number) and `scores` (array of numbers mapped to options).
+2. **Update `VOS_WI_WE` definition** in `frontend/lib/dvs/vos-wi-we.ts` to include these exact weights and score mappings for every option.
+3. **Refactor `gradeCategory`** in `frontend/lib/dvs/calculator.ts` to use these mapped scores and weights (e.g. `Score = Sum(Weight * OptionScore) / Sum(Weights)` out of 10), rather than the current naive "index-based" logic.
+
+## User Review Required
+
+> [!IMPORTANT]
+> Please review the assigned weights (percentages) and option scores (0-10) above. Do they align with the real-world priorities of the audit? Let me know if you want to tweak any numbers or if I should proceed with implementing this scoring logic in the codebase!

@@ -4,12 +4,13 @@ import { useState } from "react"
 import { ArrowLeft, CheckCircle2, ShieldAlert, ShieldCheck } from "lucide-react"
 import Link from "next/link"
 import { DATA_INPUTS, VALIDATION_QUESTIONS, CATEGORY_MAP, ALL_DVS_CATEGORIES } from "@/lib/data"
+import { gradeCategory } from "@/lib/dvs/calculator"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function DataInputPage() {
   const [dataValues, setDataValues] = useState<Record<string, string>>({});
   const [activeModalCategory, setActiveModalCategory] = useState<string | null>(null);
-  const [validationStatuses, setValidationStatuses] = useState<Record<string, boolean>>({});
+  const [validationScores, setValidationScores] = useState<Record<string, number>>({});
   const [modalAnswers, setModalAnswers] = useState<Record<string, string>>({});
 
   const handleInputChange = (key: string, value: string) => {
@@ -33,7 +34,33 @@ export default function DataInputPage() {
 
   const confirmValidation = () => {
     if (activeModalCategory) {
-      setValidationStatuses(prev => ({ ...prev, [activeModalCategory]: true }));
+      const categoryInfo = ALL_DVS_CATEGORIES.find(c => c.categoryKey === activeModalCategory);
+      if (categoryInfo) {
+        const questions = categoryInfo.validationQuestions;
+        const indices: (number | null)[] = [];
+        
+        questions.forEach((q, idx) => {
+          if (skippedIndices.has(idx)) {
+             indices.push(null);
+             return;
+          }
+          const ans = modalAnswers[`q_${activeModalCategory}_${idx}`];
+          if (ans === undefined) {
+             indices.push(null);
+          } else if (q.inputType === "yesno") {
+             // Yes/No arrays typically follow [yes_score, no_score].
+             // Yes = index 0, No = index 1
+             indices.push(ans === "yes" ? 0 : 1);
+          } else if (q.inputType === "select") {
+             indices.push(parseInt(ans, 10));
+          } else {
+             indices.push(null); 
+          }
+        });
+        
+        const grade = gradeCategory(indices, questions);
+        setValidationScores(prev => ({ ...prev, [activeModalCategory]: grade * 10 }));
+      }
     }
     closeModal();
   };
@@ -91,7 +118,8 @@ export default function DataInputPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {DATA_INPUTS.filter(input => CATEGORY_MAP[input.key]).map((input) => {
             const categoryKey = CATEGORY_MAP[input.key];
-            const isValidated = categoryKey ? validationStatuses[categoryKey] : false;
+            const score = categoryKey ? validationScores[categoryKey] : undefined;
+            const isValidated = score !== undefined;
 
             return (
               <div key={input.key} className="flex flex-col rounded-3xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md hover:border-slate-300 transition-all">
@@ -126,7 +154,7 @@ export default function DataInputPage() {
                     {isValidated ? (
                       <>
                         <ShieldCheck className="h-4 w-4" />
-                        Validated
+                        Validated ({score.toFixed(1)} / 10)
                       </>
                     ) : (
                       <>
