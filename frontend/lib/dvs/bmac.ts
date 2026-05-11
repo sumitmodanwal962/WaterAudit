@@ -7,6 +7,12 @@ export const BMAC: DVSCategory = {
   inputs: [
     { key: "BMAC", label: "Billed Metered Authorized Consumption", description: "Billed and metered authorized water consumption", type: "volume", unit: "MLD" },
   ],
+  skipRules: [
+    // Q1 (idx 0): "No" = no metered connections → skip everything else
+    { questionIndex: 0, triggerValue: "no", skipQuestionIndices: [1, 2, 3, 4, 5, 6, 7] },
+    // Q7 (idx 6): "Yes, but exactly not known" (option 3) → skip Q8
+    { questionIndex: 6, triggerValue: "3", skipQuestionIndices: [7] },
+  ],
   validationQuestions: [
     {
       question: "Whether any customers were provided with any metered water connections during the audit year?",

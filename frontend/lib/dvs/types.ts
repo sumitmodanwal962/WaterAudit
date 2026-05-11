@@ -16,10 +16,21 @@ export interface DataInput {
   unit: string;
 }
 
+export interface SkipRule {
+  /** Index of the question whose answer triggers the skip */
+  questionIndex: number;
+  /** The answer value that triggers the skip (e.g. "no" for yesno, or option index "5" for select) */
+  triggerValue: string;
+  /** Indices of questions to hide when triggered */
+  skipQuestionIndices: number[];
+}
+
 export interface DVSCategory {
   categoryKey: string;
   label: string;
   description: string;
   inputs: DataInput[];
   validationQuestions: ValidationQuestion[];
+  /** Conditional skip rules — hide certain questions based on answers to others */
+  skipRules?: SkipRule[];
 }

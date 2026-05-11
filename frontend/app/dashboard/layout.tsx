@@ -1,44 +1,11 @@
-"use client"
+import { Bell, Settings, Droplets } from "lucide-react"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
-import { useState, useRef, useEffect } from "react"
-import { Bell, Settings, Droplets, User, LogOut, ChevronDown, LayoutDashboard, BarChart3, AlertTriangle, Menu, X } from "lucide-react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { useAuth } from "@/contexts/AuthContext"
-
-const navLinks = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/dashboard/settings", label: "Settings", icon: Settings },
-]
-
-function getInitials(name?: string | null, email?: string): string {
-  if (name) {
-    return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)
-  }
-  return email?.[0]?.toUpperCase() ?? "U"
-}
-
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { user, logout } = useAuth()
-  const pathname = usePathname()
-  const [dropdownOpen, setDropdownOpen] = useState(false)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const dropdownRef = useRef<HTMLDivElement>(null)
-
-  // Close dropdown on outside click
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setDropdownOpen(false)
-      }
-    }
-    document.addEventListener("mousedown", handleClick)
-    return () => document.removeEventListener("mousedown", handleClick)
-  }, [])
-
-  const initials = getInitials(user?.full_name, user?.email)
-  const displayName = user?.full_name || user?.email || "User"
-
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
     <div className="min-h-screen bg-[#f0f6ff]">
       {/* Top Navigation Bar */}

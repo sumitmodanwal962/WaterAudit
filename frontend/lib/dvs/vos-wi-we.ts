@@ -9,6 +9,16 @@ export const VOS_WI_WE: DVSCategory = {
     { key: "WI", label: "Water Imported", description: "Total volume of water imported from external sources", type: "volume", unit: "MLD" },
     { key: "WE", label: "Water Exported", description: "Total volume of water exported to other utilities", type: "volume", unit: "MLD" },
   ],
+  skipRules: [
+    // Q1 (idx 0): "No" = no own sources → skip everything else
+    { questionIndex: 0, triggerValue: "no", skipQuestionIndices: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
+    // Q3 (idx 2): "Not done for the last 5 years" (option 5) → skip Q4, Q5
+    { questionIndex: 2, triggerValue: "5", skipQuestionIndices: [3, 4] },
+    // Q6 (idx 5): "Not from last 5 years" (option 4) → skip Q7, Q8
+    { questionIndex: 5, triggerValue: "4", skipQuestionIndices: [6, 7] },
+    // Q7 (idx 6): "No" → skip Q8
+    { questionIndex: 6, triggerValue: "no", skipQuestionIndices: [7] },
+  ],
   validationQuestions: [
     {
       question: "Did the utility produce and supply water from its own sources, such as borewells, treatment plants, or local reservoirs, etc, during the audit year?",

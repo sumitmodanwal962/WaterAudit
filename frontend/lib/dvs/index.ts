@@ -87,6 +87,7 @@ export const SUPPLEMENTARY_INPUTS: DataInput[] = [
   { key: "AnnualLeakageControlCost", label: "Annual Cost of Leakage Control", description: "Annual cost for DMA establishment, leakage detection, and O&M", type: "currency", unit: "INR" },
   { key: "TotalWaterLosses", label: "Total Water Losses", description: "Total water losses in the distribution system", type: "volume", unit: "MLD" },
   { key: "ApparentLosses", label: "Apparent Losses", description: "Losses due to meter inaccuracies, unauthorized consumption, and data errors", type: "volume", unit: "MLD" },
+
   { key: "HouseholdsWithConnection", label: "Households With Direct Connection", description: "Total households that have direct water supply connections", type: "integer", unit: "count" },
   { key: "TotalHouseholds", label: "Total Households in Service Area", description: "Total households in the service area", type: "integer", unit: "count" },
   { key: "WaterSupplied", label: "Water Supplied to Network", description: "Total water supplied to the distribution system", type: "volume", unit: "litres" },

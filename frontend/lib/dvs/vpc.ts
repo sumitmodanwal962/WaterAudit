@@ -7,6 +7,10 @@ export const VPC: DVSCategory = {
   inputs: [
     { key: "VPC", label: "Variable Production Cost", description: "Variable cost of producing one unit of water", type: "currency", unit: "INR/MLD" },
   ],
+  skipRules: [
+    // Q1 (idx 0): "The utility elected to use the CRUC value..." (option 0) → skip Q2-Q4
+    { questionIndex: 0, triggerValue: "0", skipQuestionIndices: [1, 2, 3] },
+  ],
   validationQuestions: [
     {
       question: "Choose the statement that most accurately reflects how this input value was determined",

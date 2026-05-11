@@ -3,13 +3,14 @@
 import { useState } from "react"
 import { ArrowLeft, CheckCircle2, ShieldAlert, ShieldCheck } from "lucide-react"
 import Link from "next/link"
-import { DATA_INPUTS, VALIDATION_QUESTIONS, CATEGORY_MAP } from "@/lib/data"
+import { DATA_INPUTS, VALIDATION_QUESTIONS, CATEGORY_MAP, ALL_DVS_CATEGORIES } from "@/lib/data"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function DataInputPage() {
   const [dataValues, setDataValues] = useState<Record<string, string>>({});
   const [activeModalCategory, setActiveModalCategory] = useState<string | null>(null);
   const [validationStatuses, setValidationStatuses] = useState<Record<string, boolean>>({});
+  const [modalAnswers, setModalAnswers] = useState<Record<string, string>>({});
 
   const handleInputChange = (key: string, value: string) => {
     setDataValues(prev => ({ ...prev, [key]: value }));
@@ -17,8 +18,13 @@ export default function DataInputPage() {
 
   const handleValidateClick = (categoryKey: string) => {
     if (categoryKey) {
+      setModalAnswers({});
       setActiveModalCategory(categoryKey);
     }
+  };
+
+  const handleModalAnswer = (questionId: string, value: string) => {
+    setModalAnswers(prev => ({ ...prev, [questionId]: value }));
   };
 
   const closeModal = () => {
@@ -34,6 +40,26 @@ export default function DataInputPage() {
 
   // Safe fallback if `categoryId` not found
   const modalQuestions = activeModalCategory ? VALIDATION_QUESTIONS[activeModalCategory] : [];
+
+  // Skip rules logic: compute which question indices should be hidden
+  const activeCategory = activeModalCategory
+    ? ALL_DVS_CATEGORIES.find(c => c.categoryKey === activeModalCategory)
+    : null;
+
+  const skippedIndices = new Set<number>();
+  if (activeCategory?.skipRules) {
+    for (const rule of activeCategory.skipRules) {
+      const answerKey = `q_${activeModalCategory}_${rule.questionIndex}`;
+      if (modalAnswers[answerKey] === rule.triggerValue) {
+        rule.skipQuestionIndices.forEach(i => skippedIndices.add(i));
+      }
+    }
+  }
+
+  // Build all questions with original indices and skip status
+  const allQuestionsWithMeta = modalQuestions
+    ? modalQuestions.map((q, idx) => ({ ...q, originalIndex: idx, isSkipped: skippedIndices.has(idx) }))
+    : [];
 
   return (
     <div className="mx-auto max-w-6xl space-y-8 pb-20">
@@ -139,12 +165,20 @@ export default function DataInputPage() {
             </div>
             
             <div className="p-6 overflow-y-auto space-y-6 bg-slate-50 flex-1">
-              {modalQuestions && modalQuestions.length > 0 ? (
-                modalQuestions.map((q, idx) => (
-                    <div key={idx} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+              {allQuestionsWithMeta && allQuestionsWithMeta.length > 0 ? (
+                <>
+                  {allQuestionsWithMeta.map((q) => (
+                    <div
+                      key={q.originalIndex}
+                      className={`bg-white border rounded-2xl p-5 shadow-sm transition-all ${
+                        q.isSkipped
+                          ? "opacity-40 pointer-events-none select-none border-slate-100"
+                          : "border-slate-200"
+                      }`}
+                    >
                       <p className="font-semibold text-[#0f172a] mb-4 flex gap-3 text-sm">
                         <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#e0f2fe] text-xs font-bold text-[#0284c7]">
-                          {idx + 1}
+                          {q.originalIndex + 1}
                         </span>
                         <span className="mt-0.5">{q.question}</span>
                       </p>
@@ -153,7 +187,10 @@ export default function DataInputPage() {
                         {/* Yes / No */}
                         {q.inputType === "yesno" && (
                           <div className="max-w-xs">
-                            <Select name={`q_${activeModalCategory}_${idx}`}>
+                            <Select
+                              name={`q_${activeModalCategory}_${q.originalIndex}`}
+                              onValueChange={(value) => handleModalAnswer(`q_${activeModalCategory}_${q.originalIndex}`, value)}
+                            >
                               <SelectTrigger className="w-full bg-white">
                                 <SelectValue placeholder="Select an option" />
                               </SelectTrigger>
@@ -209,7 +246,10 @@ export default function DataInputPage() {
                         {/* Select with explicit domain-specific options */}
                         {q.inputType === "select" && q.options && (
                           <div className="max-w-full">
-                            <Select name={`q_${activeModalCategory}_${idx}`}>
+                            <Select
+                              name={`q_${activeModalCategory}_${q.originalIndex}`}
+                              onValueChange={(value) => handleModalAnswer(`q_${activeModalCategory}_${q.originalIndex}`, value)}
+                            >
                               <SelectTrigger className="w-full bg-white text-left text-sm h-auto min-h-10 py-2.5">
                                 <SelectValue placeholder="Select an option" />
                               </SelectTrigger>
@@ -225,7 +265,10 @@ export default function DataInputPage() {
                         )}
                       </div>
                     </div>
-                ))
+                  ))}
+
+
+                </>
               ) : (
                 <div className="p-10 text-center text-slate-500">
                   No validation questions mapped for this category yet.
