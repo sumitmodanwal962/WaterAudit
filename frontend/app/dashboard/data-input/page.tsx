@@ -86,41 +86,41 @@ export default function DataInputPage() {
         </Link>
       </div>
 
-      {/* Input Matrix */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {DATA_INPUTS.map((input) => {
-          const categoryKey = CATEGORY_MAP[input.key];
-          const isValidated = categoryKey ? validationStatuses[categoryKey] : false;
+      <div className="mb-10">
+        <h2 className="text-xl font-bold text-[#0f172a] mb-6">Core System Values</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {DATA_INPUTS.filter(input => CATEGORY_MAP[input.key]).map((input) => {
+            const categoryKey = CATEGORY_MAP[input.key];
+            const isValidated = categoryKey ? validationStatuses[categoryKey] : false;
 
-          return (
-            <div key={input.key} className="flex flex-col rounded-3xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md hover:border-slate-300 transition-all">
-              <div className="flex-1 mb-4">
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="font-bold text-[#0f172a] text-lg leading-tight">{input.label}</h3>
-                  <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600 border border-slate-200 whitespace-nowrap">
-                    {input.key}
-                  </span>
-                </div>
-                <p className="text-sm text-slate-500 mb-4 h-10 line-clamp-2">{input.description}</p>
-                
-                <div className="flex items-center bg-slate-50 rounded-xl border border-slate-200 overflow-hidden focus-within:ring-1 focus-within:ring-[#0284c7] focus-within:border-[#0284c7] transition-all">
-                  <input
-                    type={input.type === 'number' || input.type === 'volume' || input.type === 'integer' || input.type === 'currency' ? 'number' : 'text'}
-                    placeholder="0.00"
-                    value={dataValues[input.key] || ''}
-                    onChange={(e) => handleInputChange(input.key, e.target.value)}
-                    className="w-full bg-transparent px-4 py-3 text-sm font-medium text-[#0f172a] outline-none"
-                  />
-                  <div className="px-3 text-xs font-semibold text-slate-400 bg-slate-100 border-l border-slate-200 h-full flex items-center justify-center whitespace-nowrap">
-                    {input.unit}
+            return (
+              <div key={input.key} className="flex flex-col rounded-3xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md hover:border-slate-300 transition-all">
+                <div className="flex-1 mb-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="font-bold text-[#0f172a] text-lg leading-tight">{input.label}</h3>
+                    <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600 border border-slate-200 whitespace-nowrap">
+                      {input.key}
+                    </span>
+                  </div>
+                  <p className="text-sm text-slate-500 mb-4 h-10 line-clamp-2">{input.description}</p>
+                  
+                  <div className="flex items-center bg-slate-50 rounded-xl border border-slate-200 overflow-hidden focus-within:ring-1 focus-within:ring-[#0284c7] focus-within:border-[#0284c7] transition-all">
+                    <input
+                      type={input.type === 'number' || input.type === 'volume' || input.type === 'integer' || input.type === 'currency' ? 'number' : 'text'}
+                      placeholder="0.00"
+                      value={dataValues[input.key] || ''}
+                      onChange={(e) => handleInputChange(input.key, e.target.value)}
+                      className="w-full bg-transparent px-4 py-3 text-sm font-medium text-[#0f172a] outline-none"
+                    />
+                    <div className="px-3 text-xs font-semibold text-slate-400 bg-slate-100 border-l border-slate-200 h-full flex items-center justify-center whitespace-nowrap">
+                      {input.unit}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {categoryKey ? (
                 <div className="mt-auto pt-4 border-t border-slate-100">
                   <button 
-                    onClick={() => handleValidateClick(categoryKey)}
+                    onClick={() => handleValidateClick(categoryKey!)}
                     className={`w-full flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold transition-colors border ${isValidated ? 'bg-[#dcfce7] border-[#bbf7d0] text-[#166534] hover:bg-[#bbf7d0]' : 'bg-white border-slate-200 text-[#0f172a] hover:bg-slate-50 hover:border-slate-300 shadow-sm'}`}
                   >
                     {isValidated ? (
@@ -136,14 +136,46 @@ export default function DataInputPage() {
                     )}
                   </button>
                 </div>
-              ) : (
-                <div className="mt-auto pt-4 border-t border-slate-100 text-center text-xs font-medium text-slate-400">
-                  No validation required
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div>
+        <h2 className="text-xl font-bold text-[#0f172a] mb-6">Supplementary Details</h2>
+        <div className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+          <ul className="divide-y divide-slate-100">
+            {DATA_INPUTS.filter(input => !CATEGORY_MAP[input.key]).map((input) => (
+              <li key={input.key} className="p-5 sm:p-6 hover:bg-slate-50 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-1.5">
+                    <h3 className="font-bold text-[#0f172a] text-sm sm:text-base">{input.label}</h3>
+                    <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-semibold text-slate-500 border border-slate-200 whitespace-nowrap">
+                      {input.key}
+                    </span>
+                  </div>
+                  <p className="text-sm text-slate-500 max-w-2xl leading-relaxed">{input.description}</p>
                 </div>
-              )}
-            </div>
-          );
-        })}
+                
+                <div className="w-full md:w-72 shrink-0">
+                  <div className="flex items-center bg-slate-50 rounded-xl border border-slate-200 overflow-hidden focus-within:ring-1 focus-within:ring-[#0284c7] focus-within:border-[#0284c7] transition-all shadow-sm">
+                    <input
+                      type={input.type === 'number' || input.type === 'volume' || input.type === 'integer' || input.type === 'currency' ? 'number' : 'text'}
+                      placeholder="0.00"
+                      value={dataValues[input.key] || ''}
+                      onChange={(e) => handleInputChange(input.key, e.target.value)}
+                      className="w-full bg-transparent px-4 py-2.5 text-sm font-medium text-[#0f172a] outline-none"
+                    />
+                    <div className="px-4 text-xs font-semibold text-slate-400 bg-slate-100 border-l border-slate-200 h-full flex items-center justify-center whitespace-nowrap">
+                      {input.unit}
+                    </div>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
 
       {/* Validation Modal Overlay */}
