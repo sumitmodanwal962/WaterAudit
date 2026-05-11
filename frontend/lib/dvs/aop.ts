@@ -7,6 +7,10 @@ export const AOP: DVSCategory = {
   inputs: [
     { key: "AOP", label: "Average Operating Pressure", description: "Average system operating pressure", type: "number", unit: "psi" },
   ],
+  skipRules: [
+    // Q3 (idx 2): "Pressure data is not monitored continuously" (option 3) → skip Q4
+    { questionIndex: 2, triggerValue: "3", skipQuestionIndices: [3] },
+  ],
   validationQuestions: [
     {
       question: "How is the boundary integrity of the pressure zones in the system checked and ensured?",

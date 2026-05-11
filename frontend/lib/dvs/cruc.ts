@@ -7,6 +7,10 @@ export const CRUC: DVSCategory = {
   inputs: [
     { key: "CRUC", label: "Customer Retail Unit Charge", description: "Average retail charge per unit of water", type: "currency", unit: "INR/MLD" },
   ],
+  skipRules: [
+    // Q1 (idx 0): "No" → skip Q2-Q5
+    { questionIndex: 0, triggerValue: "no", skipQuestionIndices: [1, 2, 3, 4] },
+  ],
   validationQuestions: [
     {
       question: "Was customer water consumption billed based on actual meter readings during the audit year?",
