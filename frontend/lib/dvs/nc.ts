@@ -7,6 +7,12 @@ export const NC: DVSCategory = {
   inputs: [
     { key: "Nc", label: "Number of Service Connections", description: "Total number of service connections", type: "integer", unit: "count" },
   ],
+  skipRules: [
+    // Q1 (idx 0): "Provisionally estimated..." (option 1) → skip Q2, Q3
+    { questionIndex: 0, triggerValue: "1", skipQuestionIndices: [1, 2] },
+    // Q4 (idx 3): "not maintained or not kept up to date" (option 2) → skip Q5
+    { questionIndex: 3, triggerValue: "2", skipQuestionIndices: [4] },
+  ],
   validationQuestions: [
     {
       question: "In what method was the information about service connections collected?",
