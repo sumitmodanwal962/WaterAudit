@@ -1,0 +1,150 @@
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+function getToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("wa_token");
+}
+
+type FetchOptions = RequestInit & { auth?: boolean };
+
+async function apiFetch<T>(path: string, options: FetchOptions = {}): Promise<T> {
+  const { auth = true, ...rest } = options;
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(rest.headers as Record<string, string>),
+  };
+
+  if (auth) {
+    const token = getToken();
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(`${API_URL}${path}`, { ...rest, headers });
+
+  if (!res.ok) {
+    let detail = `Request failed: ${res.status}`;
+    try {
+      const body = await res.json();
+      detail = body.detail || detail;
+    } catch {}
+    throw new Error(detail);
+  }
+
+  if (res.status === 204) return undefined as T;
+  return res.json() as Promise<T>;
+}
+
+// ── Auth ────────────────────────────────────────────────────────
+
+export async function login(email: string, password: string): Promise<{ access_token: string; token_type: string }> {
+  const form = new URLSearchParams();
+  form.append("username", email);
+  form.append("password", password);
+
+  const res = await fetch(`${API_URL}/api/auth/login`, {
+    method: "POST",
+    body: form,
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.detail || "Login failed");
+  }
+  return res.json();
+}
+
+export async function register(data: {
+  email: string;
+  password: string;
+  user_type?: string;
+  full_name?: string;
+  gender?: string;
+  org_name?: string;
+  designation?: string;
+  contact?: string;
+  address?: string;
+  location?: string;
+}) {
+  return apiFetch("/api/auth/register", { method: "POST", body: JSON.stringify(data), auth: false });
+}
+
+// ── User ────────────────────────────────────────────────────────
+
+export async function getMe() {
+  return apiFetch<UserProfile>("/api/users/me");
+}
+
+export async function updateProfile(data: Partial<UserProfile>) {
+  return apiFetch<UserProfile>("/api/users/me", { method: "PUT", body: JSON.stringify(data) });
+}
+
+export async function changePassword(current_password: string, new_password: string) {
+  return apiFetch("/api/users/me/change-password", {
+    method: "POST",
+    body: JSON.stringify({ current_password, new_password }),
+  });
+}
+
+// ── Projects ─────────────────────────────────────────────────────
+
+export async function listProjects(): Promise<Project[]> {
+  return apiFetch<Project[]>("/api/projects");
+}
+
+export async function getProject(id: number): Promise<Project> {
+  return apiFetch<Project>(`/api/projects/${id}`);
+}
+
+export async function createProject(data: ProjectCreate): Promise<Project> {
+  return apiFetch<Project>("/api/projects", { method: "POST", body: JSON.stringify(data) });
+}
+
+export async function deleteProject(id: number): Promise<void> {
+  return apiFetch<void>(`/api/projects/${id}`, { method: "DELETE" });
+}
+
+// ── Types ────────────────────────────────────────────────────────
+
+export interface UserProfile {
+  id: number;
+  email: string;
+  is_active: boolean;
+  user_type: string;
+  full_name?: string;
+  gender?: string;
+  org_name?: string;
+  designation?: string;
+  contact?: string;
+  address?: string;
+  location?: string;
+  created_at?: string;
+}
+
+export interface Project {
+  id: number;
+  owner_id: number;
+  title: string;
+  location?: string;
+  description?: string;
+  scope?: string;
+  project_type?: string;
+  population?: number;
+  capacity?: string;
+  status: string;
+  lead_auditor_name?: string;
+  lead_auditor_email?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ProjectCreate {
+  title: string;
+  location?: string;
+  description?: string;
+  scope?: string;
+  project_type?: string;
+  population?: number;
+  capacity?: string;
+  lead_auditor_name?: string;
+  lead_auditor_email?: string;
+}
