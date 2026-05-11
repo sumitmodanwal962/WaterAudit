@@ -7,6 +7,10 @@ export const LP: DVSCategory = {
   inputs: [
     { key: "Lp", label: "Average Length of Customer Service Line", description: "Average length of private customer service lines", type: "number", unit: "km" },
   ],
+  skipRules: [
+    // Q2 (idx 1): "Provisionally estimated..." (option 2) → skip Q3
+    { questionIndex: 1, triggerValue: "2", skipQuestionIndices: [2] },
+  ],
   validationQuestions: [
     {
       question: "Are customer water meters usually installed near the boundary wall or on the property line?",
