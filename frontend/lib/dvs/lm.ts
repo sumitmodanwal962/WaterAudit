@@ -7,6 +7,12 @@ export const LM: DVSCategory = {
   inputs: [
     { key: "Lm", label: "Length of Mains", description: "Total length of water distribution mains", type: "number", unit: "km" },
   ],
+  skipRules: [
+    // Q1 (idx 0): "Provisionally estimated..." (option 1) → skip Q2
+    { questionIndex: 0, triggerValue: "1", skipQuestionIndices: [1] },
+    // Q3 (idx 2): "not maintained or not kept up to date" (option 2) → skip Q4
+    { questionIndex: 2, triggerValue: "2", skipQuestionIndices: [3] },
+  ],
   validationQuestions: [
     {
       question: "In what method was the data on the length of water mains collected?",
