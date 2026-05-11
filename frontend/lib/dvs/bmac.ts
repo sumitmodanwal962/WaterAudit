@@ -16,7 +16,9 @@ export const BMAC: DVSCategory = {
   validationQuestions: [
     {
       question: "Whether any customers were provided with any metered water connections during the audit year?",
-      inputType: "yesno"
+      inputType: "yesno",
+      weight: 0,
+      scores: [10, 1]
     },
     {
       question: "What proportion of billed metered consumers are billed using actual meter readings in a standard billing cycle?",
@@ -28,7 +30,9 @@ export const BMAC: DVSCategory = {
         "30%-50%",
         "10%-20%",
         "< 10%"
-      ]
+      ],
+      weight: 30,
+      scores: [10, 8, 6, 4, 2, 0]
     },
     {
       question: "What is the frequency of consumer meter readings taken by the utility? If there are different meter reading schedules, what is the most common frequency for most customers?",
@@ -39,11 +43,15 @@ export const BMAC: DVSCategory = {
         "Once in two months",
         "Quarterly",
         "Semi-annually"
-      ]
+      ],
+      weight: 20,
+      scores: [10, 8, 6, 4, 2]
     },
     {
       question: "Has the BMAC volume been adjusted to accurately represent water consumption during the audit year?",
-      inputType: "yesno"
+      inputType: "yesno",
+      weight: 10,
+      scores: [10, 0]
     },
     {
       question: "What is the frequency with which utility staff conduct internal reviews of the BMAC data?",
@@ -54,7 +62,9 @@ export const BMAC: DVSCategory = {
         "Annually",
         "Less regularly than annually",
         "No evaluation"
-      ]
+      ],
+      weight: 15,
+      scores: [10, 8, 5, 2, 0]
     },
     {
       question: "How detailed is the level of assessment during the internal review of BMAC data?",
@@ -65,17 +75,21 @@ export const BMAC: DVSCategory = {
         "Moderate level of assessment",
         "Minimal level of assessment",
         "No evaluation"
-      ]
+      ],
+      weight: 10,
+      scores: [10, 8, 5, 2, 0]
     },
     {
-      question: "Has an independent reviewer recently examined the utility\u2019s billing data? If so, when?",
+      question: "Has an independent reviewer recently examined the utility’s billing data? If so, when?",
       inputType: "select",
       options: [
         "Within 2 years",
         "Within 2 to 5 years",
         "Yes, 5 years back",
         "Yes, but exactly not known"
-      ]
+      ],
+      weight: 10,
+      scores: [10, 7, 4, 1]
     },
     {
       question: "How comprehensive was the independent review of the billing data?",
@@ -83,7 +97,9 @@ export const BMAC: DVSCategory = {
       options: [
         "Reviewed by third party authority officials",
         "Not reviewed"
-      ]
+      ],
+      weight: 5,
+      scores: [10, 0]
     }
   ]
 };
