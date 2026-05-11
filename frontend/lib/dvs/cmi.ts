@@ -7,6 +7,16 @@ export const CMI: DVSCategory = {
   inputs: [
     { key: "CMI", label: "Customer Metering Inaccuracies", description: "Volume of losses due to customer meter inaccuracies", type: "volume", unit: "MLD" },
   ],
+  skipRules: [
+    // Q1 (idx 0): "No" → skip all
+    { questionIndex: 0, triggerValue: "no", skipQuestionIndices: [1, 2, 3, 4, 5, 6, 7, 8, 9] },
+    // Q3 (idx 2): last two options (idx 5, 6) → skip Q4 (idx 3)
+    { questionIndex: 2, triggerValue: "5", skipQuestionIndices: [3] },
+    { questionIndex: 2, triggerValue: "6", skipQuestionIndices: [3] },
+    // Q5 (idx 4): last two options (idx 3, 4) → skip Q6 (idx 5)
+    { questionIndex: 4, triggerValue: "3", skipQuestionIndices: [5] },
+    { questionIndex: 4, triggerValue: "4", skipQuestionIndices: [5] },
+  ],
   validationQuestions: [
     {
       question: "Did the audit period include any metered customer water usage?",

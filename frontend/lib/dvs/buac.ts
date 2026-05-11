@@ -7,6 +7,9 @@ export const BUAC: DVSCategory = {
   inputs: [
     { key: "BUAC", label: "Billed Unmetered Authorized Consumption", description: "Billed but unmetered authorized water consumption", type: "volume", unit: "MLD" },
   ],
+  skipRules: [
+    { questionIndex: 0, triggerValue: "no", skipQuestionIndices: [1, 2, 3] },
+  ],
   validationQuestions: [
     {
       question: "Were unmetered consumers billed for water usage during the audit year?",
