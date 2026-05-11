@@ -41,32 +41,74 @@ export const DVS_WEIGHTS: DVSCategoryWeight[] = [
   }
 ];
 
+import { ValidationQuestion } from "./types";
+
 /**
- * Grades each category based on the number of questions answered
- * and how "good" the answers are (higher option index = better).
+ * Grades each category based on the configured weights and option scores.
  *
- * @param answers  Record<categoryKey, number[]>  — array of selected option indices per category
- *                 Each value is the 0-based index of the chosen option.
- *                 Higher index = better practice/confidence.
- * @param maxOptions Record<categoryKey, number[]> — max option count per question per category
- * @returns Grade 0–1 for each category
+ * @param selectedIndices Array of selected option indices. Use null for skipped questions.
+ * @param questions Array of ValidationQuestion objects for the category.
+ * @returns Grade 0–1 for the category
  */
 export function gradeCategory(
-  selectedIndices: number[],
-  maxOptionCounts: number[]
+  selectedIndices: (number | null)[],
+  questions: ValidationQuestion[]
 ): number {
-  if (selectedIndices.length === 0) return 0;
+  if (!questions || questions.length === 0 || selectedIndices.length === 0) return 0;
 
-  let totalScore = 0;
-  let totalMax = 0;
+  let totalWeightedScore = 0;
+  let totalWeight = 0;
 
-  for (let i = 0; i < selectedIndices.length; i++) {
-    const maxIdx = (maxOptionCounts[i] || 1) - 1; // max possible index
-    totalScore += selectedIndices[i];
-    totalMax += maxIdx;
+  // Backward compatibility: If no weights are defined, fallback to index-based logic
+  const hasWeights = questions.some(q => q.weight !== undefined);
+
+  if (!hasWeights) {
+    let score = 0;
+    let max = 0;
+    for (let i = 0; i < selectedIndices.length; i++) {
+      if (selectedIndices[i] === null) continue;
+      const maxIdx = (questions[i].options?.length || 2) - 1;
+      score += selectedIndices[i]!;
+      max += maxIdx;
+    }
+    return max > 0 ? score / max : 0;
   }
 
-  return totalMax > 0 ? totalScore / totalMax : 0;
+  // New logic: weighted option scores
+  for (let i = 0; i < selectedIndices.length; i++) {
+    const q = questions[i];
+    const answerIdx = selectedIndices[i];
+
+    if (answerIdx === null || answerIdx === undefined) continue;
+
+    const w = q.weight !== undefined ? q.weight : 1;
+    
+    let optionScore = 0;
+    if (q.scores && q.scores.length > answerIdx) {
+      optionScore = q.scores[answerIdx];
+    } else {
+      const maxIdx = (q.options?.length || 2) - 1;
+      optionScore = maxIdx > 0 ? (answerIdx / maxIdx) * 10 : 0;
+    }
+
+    totalWeightedScore += w * optionScore;
+    totalWeight += w;
+  }
+
+  if (totalWeight === 0) {
+    // Edge case: All answered questions had 0 weight (e.g. gate question)
+    const firstAnswered = selectedIndices.findIndex(idx => idx !== null && idx !== undefined);
+    if (firstAnswered !== -1) {
+      const q = questions[firstAnswered];
+      const ans = selectedIndices[firstAnswered]!;
+      if (q.scores && q.scores.length > ans) {
+        return q.scores[ans] / 10;
+      }
+    }
+    return 0;
+  }
+
+  return (totalWeightedScore / totalWeight) / 10;
 }
 
 /**
