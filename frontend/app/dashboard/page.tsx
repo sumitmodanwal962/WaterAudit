@@ -261,15 +261,7 @@ export default function DashboardPage() {
                   </span>
                 )}
 
-                {/* Delete button */}
-                <button
-                  onClick={e => handleDelete(e, project.id)}
-                  disabled={deletingId === project.id}
-                  className="absolute left-6 bottom-6 opacity-0 group-hover:opacity-100 flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-red-500 hover:bg-red-50 transition-all"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                  {deletingId === project.id ? "Deleting…" : "Delete"}
-                </button>
+
 
                 <div className="mb-6 pr-28">
                   <h3 className="mb-2 text-xl font-bold leading-tight text-[#0f172a] line-clamp-2 group-hover:text-[#0284c7] transition-colors">
@@ -294,8 +286,19 @@ export default function DashboardPage() {
                       <Calendar className="h-3.5 w-3.5" />
                       {timeAgo(project.updated_at)}
                     </div>
-                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-sky-50 text-[#0284c7] opacity-0 group-hover:opacity-100 transition-opacity">
-                      <ChevronRight className="h-4 w-4" />
+                    <div className="flex items-center gap-2">
+                      {/* Delete button */}
+                      <button
+                        onClick={e => handleDelete(e, project.id)}
+                        disabled={deletingId === project.id}
+                        className="opacity-0 group-hover:opacity-100 flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-red-500 hover:bg-red-50 transition-all"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        <span className="hidden sm:inline">{deletingId === project.id ? "Deleting…" : "Delete"}</span>
+                      </button>
+                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-sky-50 text-[#0284c7] opacity-0 group-hover:opacity-100 transition-opacity">
+                        <ChevronRight className="h-4 w-4" />
+                      </div>
                     </div>
                   </div>
                 </div>
