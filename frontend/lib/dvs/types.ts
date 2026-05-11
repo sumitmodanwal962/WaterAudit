@@ -22,4 +22,6 @@ export interface DVSCategory {
   description: string;
   inputs: DataInput[];
   validationQuestions: ValidationQuestion[];
+  /** If set, answering "No" to the question at this index will skip all subsequent questions */
+  gateQuestionIndex?: number;
 }

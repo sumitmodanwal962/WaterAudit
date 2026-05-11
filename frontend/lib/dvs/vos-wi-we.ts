@@ -9,6 +9,7 @@ export const VOS_WI_WE: DVSCategory = {
     { key: "WI", label: "Water Imported", description: "Total volume of water imported from external sources", type: "volume", unit: "MLD" },
     { key: "WE", label: "Water Exported", description: "Total volume of water exported to other utilities", type: "volume", unit: "MLD" },
   ],
+  gateQuestionIndex: 0,
   validationQuestions: [
     {
       question: "Did the utility produce and supply water from its own sources, such as borewells, treatment plants, or local reservoirs, etc, during the audit year?",
