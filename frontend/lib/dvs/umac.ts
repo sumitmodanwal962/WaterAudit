@@ -13,11 +13,15 @@ export const UMAC: DVSCategory = {
   validationQuestions: [
     {
       question: "Were there any metered connections where water use went unbilled during the audit year?",
-      inputType: "yesno"
+      inputType: "yesno",
+      weight: 0,
+      scores: [10, 1]
     },
     {
       question: "Is there a formal utility policy that identifies which metered connections are exempt from billing?",
-      inputType: "yesno"
+      inputType: "yesno",
+      weight: 20,
+      scores: [10, 0]
     },
     {
       question: "What is the number of metered connections for which water use is not billed?",
@@ -26,7 +30,9 @@ export const UMAC: DVSCategory = {
         "Checked based on total availability",
         "Projected based on total availability",
         "Not known"
-      ]
+      ],
+      weight: 25,
+      scores: [10, 5, 0]
     },
     {
       question: "What is the usual frequency of meter readings for unbilled consumers?",
@@ -38,7 +44,9 @@ export const UMAC: DVSCategory = {
         "Quarterly",
         "Semi-annually",
         "Annually"
-      ]
+      ],
+      weight: 30,
+      scores: [10, 8, 6, 4, 2, 0]
     },
     {
       question: "How frequently are meter readings for unbilled consumers reviewed for potential errors?",
@@ -50,7 +58,9 @@ export const UMAC: DVSCategory = {
         "Annually",
         "Once two years",
         "No verification done"
-      ]
+      ],
+      weight: 25,
+      scores: [10, 8, 6, 4, 2, 0]
     }
   ]
 };

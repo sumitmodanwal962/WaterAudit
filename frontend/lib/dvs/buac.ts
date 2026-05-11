@@ -13,7 +13,9 @@ export const BUAC: DVSCategory = {
   validationQuestions: [
     {
       question: "Were unmetered consumers billed for water usage during the audit year?",
-      inputType: "yesno"
+      inputType: "yesno",
+      weight: 0,
+      scores: [10, 1]
     },
     {
       question: "What proportion of billed connections are unmetered?",
@@ -25,7 +27,9 @@ export const BUAC: DVSCategory = {
         "30%-50%",
         "10%-20%",
         "< 10%"
-      ]
+      ],
+      weight: 40,
+      scores: [0, 2, 4, 6, 8, 10]
     },
     {
       question: "What method is used to calculate or estimate water use for unmetered consumers?",
@@ -35,7 +39,9 @@ export const BUAC: DVSCategory = {
         "Derived from similar customer groups within the utility\u2019s metered population, but the sample size available was limited",
         "Assessed based on guesses of consumption",
         "Calculate approximately"
-      ]
+      ],
+      weight: 40,
+      scores: [10, 6, 0, 3]
     },
     {
       question: "How frequently does the utility estimate consumption for unmetered consumers?",
@@ -46,7 +52,9 @@ export const BUAC: DVSCategory = {
         "Quarterly",
         "Once two months",
         "Monthly"
-      ]
+      ],
+      weight: 20,
+      scores: [2, 4, 6, 8, 10]
     }
   ]
 };
