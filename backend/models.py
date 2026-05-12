@@ -1,7 +1,7 @@
-from sqlalchemy import Boolean, Column, Integer, String, DateTime, ForeignKey, func
+from sqlalchemy import Boolean, Column, Integer, String, DateTime, ForeignKey, func, JSON
 from sqlalchemy.orm import relationship
 from pydantic import BaseModel, EmailStr
-from typing import Optional
+from typing import Optional, Dict, Any
 from datetime import datetime
 from database import Base
 
@@ -55,6 +55,23 @@ class Project(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     owner = relationship("User", back_populates="projects")
+    data_input = relationship("DataInput", back_populates="project", uselist=False, cascade="all, delete-orphan")
+
+
+class DataInput(Base):
+    __tablename__ = "data_inputs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), unique=True, nullable=False)
+
+    data_values = Column(JSON, default={})
+    validation_scores = Column(JSON, default={})
+    modal_answers = Column(JSON, default={})
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    project = relationship("Project", back_populates="data_input")
 
 
 # ── Pydantic Schemas ──────────────────────────────────────────────
@@ -141,6 +158,25 @@ class ProjectResponse(BaseModel):
     lead_auditor_email: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
+class DataInputCreate(BaseModel):
+    data_values: Dict[str, Any] = {}
+    validation_scores: Dict[str, Any] = {}
+    modal_answers: Dict[str, Any] = {}
+
+
+class DataInputResponse(BaseModel):
+    id: int
+    project_id: int
+    data_values: Dict[str, Any]
+    validation_scores: Dict[str, Any]
+    modal_answers: Dict[str, Any]
+    created_at: datetime
+    updated_at: datetime
 
     class Config:
         from_attributes = True

@@ -57,6 +57,33 @@ END;
 $$;
 """
 
+# ── 4. Create data_inputs table (IF NOT EXISTS) ──────────────────────────────
+CREATE_DATA_INPUTS = """
+CREATE TABLE IF NOT EXISTS data_inputs (
+    id                  SERIAL PRIMARY KEY,
+    project_id          INTEGER NOT NULL UNIQUE REFERENCES projects(id) ON DELETE CASCADE,
+    data_values         JSONB DEFAULT '{}',
+    validation_scores   JSONB DEFAULT '{}',
+    modal_answers       JSONB DEFAULT '{}',
+    created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+"""
+
+CREATE_DATA_INPUT_TRIGGER = """
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_trigger WHERE tgname = 'trg_data_inputs_updated_at'
+    ) THEN
+        CREATE TRIGGER trg_data_inputs_updated_at
+        BEFORE UPDATE ON data_inputs
+        FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    END IF;
+END;
+$$;
+"""
+
 def run_migrations():
     with engine.begin() as conn:
         print("Adding created_at and updated_at to users...")
@@ -68,9 +95,13 @@ def run_migrations():
         conn.execute(text(CREATE_PROJECTS))
         print("  ✓ OK")
 
-        print("Creating updated_at trigger for projects…")
         conn.execute(text(CREATE_TRIGGER_FN))
         conn.execute(text(CREATE_TRIGGER))
+        print("  ✓ OK")
+
+        print("Creating data_inputs table if not exists…")
+        conn.execute(text(CREATE_DATA_INPUTS))
+        conn.execute(text(CREATE_DATA_INPUT_TRIGGER))
         print("  ✓ OK")
 
 if __name__ == "__main__":

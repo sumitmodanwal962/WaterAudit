@@ -205,66 +205,70 @@ export interface KPIResults {
   infrastructureLeakageIndex: number;
   coverageOfConnections: number;
   perCapitaWaterSupply: number;
+  uarl: number;
+  carl: number;
 }
 
 /**
  * Calculate all KPIs from the raw data inputs.
  */
 export function calculateKPIs(data: Record<string, number>): Omit<KPIResults, 'dvs'> {
+  // 1. System Input Volume (SIV) = VOS + WI
   const vos = data["VOS"] || 0;
   const wi = data["WI"] || 0;
-  const we = data["WE"] || 0;
-  const systemInput = vos + wi - we;
+  const systemInput = vos + wi;
 
+  // 2. Revenue Water (RW) = WE + BMAC + BUAC
+  const we = data["WE"] || 0;
   const bmac = data["BMAC"] || 0;
   const buac = data["BUAC"] || 0;
-  const umac = data["UMAC"] || 0;
-  const uuac = data["UUAC"] || 0;
-  const authorizedConsumption = bmac + buac + umac + uuac;
+  const revenueWater = we + bmac + buac;
 
-  const billedAuthorized = bmac + buac;
-  const revenueWater = billedAuthorized;
+  // 3. Non-Revenue Water (NRW)
   const nrw = systemInput - revenueWater;
-
-  const totalWaterLosses = data["TotalWaterLosses"] || (systemInput - authorizedConsumption);
-  const realLosses = totalWaterLosses - (data["ApparentLosses"] || 0);
-
-  const householdsWithConn = data["HouseholdsWithConnection"] || 0;
-  const totalHouseholds = data["TotalHouseholds"] || 1;
-
-  const waterSupplied = data["WaterSupplied"] || 0;
-  const population = data["Population"] || 1;
-  const daysInMonth = data["DaysInMonth"] || 30;
-
-  const lm = data["Lm"] || 1;
-  const nc = data["Nc"] || 1;
-  const aop = data["AOP"] || 1;
-
-  // NRW %
   const nrwPercentage = systemInput > 0 ? (nrw / systemInput) * 100 : 0;
 
-  // Revenue Water Ratio
-  const revenueWaterRatio = systemInput > 0 ? (revenueWater / systemInput) * 100 : 0;
+  // 4. Revenue Water Ratio (RWR) = 100 - NRW%
+  const revenueWaterRatio = 100 - nrwPercentage;
 
-  // Economical Level of Leakage (simplified: marginal cost vs control cost ratio)
+  // 5. CARL (Current Annual Real Losses)
+  // CARL = TotalWaterLosses - ApparentLosses
+  const totalWaterLosses = data["TotalWaterLosses"] || 0;
+  const apparentLosses = data["ApparentLosses"] || 0;
+  const carlDaily = totalWaterLosses - apparentLosses; // in MLD
+  const carlAnnualLitres = carlDaily * 1000000 * 365;
+
+  // 6. UARL (Unavoidable Annual Real Losses)
+  // Lc = (Nc * Lp * 3.048) / 10000
+  const nc = data["Nc"] || 0;
+  const lp = data["Lp"] || 0;
+  const lc = (nc * lp * 3.048) / 10000;
+
+  // UARL = (20.04 * Lm + 0.568 * Nc + 28.39 * Lc) * AOP * 365
+  const lm = data["Lm"] || 0;
+  const aop = data["AOP"] || 0;
+  const uarl = (20.04 * lm + 0.568 * nc + 28.39 * lc) * aop * 365;
+
+  // 7. ILI = CARL / UARL
+  const infrastructureLeakageIndex = uarl > 0 ? carlAnnualLitres / uarl : 0;
+
+  // Economical Level of Leakage
   const marginalCost = data["MarginalCostWater"] || 0;
   const leakageCost = data["AnnualLeakageControlCost"] || 0;
   const economicalLeakageLevel = marginalCost > 0 ? (leakageCost / marginalCost) : 0;
 
-  // Infrastructure Leakage Index = Current Annual Real Losses / Unavoidable Annual Real Losses
-  // UARL (litres/day) = (18 × Lm + 0.8 × Nc + 25 × Lp) × AOP
-  const lp = data["Lp"] || 0;
-  const uarl = (18 * lm + 0.8 * nc + 25 * lp) * aop;
-  const currentRealLosses = realLosses * 1000000; // MLD to litres
-  const infrastructureLeakageIndex = uarl > 0 ? currentRealLosses / uarl : 0;
-
   // Coverage of Water Supply Connections
+  const householdsWithConn = data["HouseholdsWithConnection"] || 0;
+  const totalHouseholds = data["TotalHouseholds"] || 0;
   const coverageOfConnections = totalHouseholds > 0
     ? (householdsWithConn / totalHouseholds) * 100
     : 0;
 
-  // Per Capita Water Supply (litres per capita per day)
-  const perCapitaWaterSupply = population > 0
+  // Per Capita Water Supply
+  const waterSupplied = data["WaterSupplied"] || 0;
+  const population = data["Population"] || 0;
+  const daysInMonth = data["DaysInMonth"] || 0;
+  const perCapitaWaterSupply = (population > 0 && daysInMonth > 0)
     ? (waterSupplied / (population * daysInMonth))
     : 0;
 
@@ -275,5 +279,7 @@ export function calculateKPIs(data: Record<string, number>): Omit<KPIResults, 'd
     infrastructureLeakageIndex: Math.round(infrastructureLeakageIndex * 100) / 100,
     coverageOfConnections: Math.round(coverageOfConnections * 100) / 100,
     perCapitaWaterSupply: Math.round(perCapitaWaterSupply * 100) / 100,
+    uarl: Math.round(uarl),
+    carl: Math.round(carlAnnualLitres),
   };
 }
