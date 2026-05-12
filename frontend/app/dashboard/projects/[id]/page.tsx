@@ -174,7 +174,7 @@ export default function ProjectDetailPage() {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Link href={`/dashboard/data-input`}
+        <Link href={`/dashboard/data-input?projectId=${project.id}`}
           className="group flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:border-sky-200 hover:shadow-md hover:-translate-y-0.5 transition-all">
           <div className="flex items-center gap-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-sky-100 text-[#0284c7]">

@@ -34,6 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null)
       setToken(null)
       localStorage.removeItem("wa_token")
+      window.location.href = "/login"
     }
   }, [])
 
@@ -46,6 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .catch(() => {
           localStorage.removeItem("wa_token")
           setToken(null)
+          window.location.href = "/login"
         })
         .finally(() => setIsLoading(false))
     } else {
