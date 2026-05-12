@@ -1,18 +1,77 @@
 "use client"
 
-import { useState } from "react"
-import { ArrowLeft, CheckCircle2, ShieldAlert, ShieldCheck } from "lucide-react"
+import { useEffect, useState } from "react"
+import { ArrowLeft, CheckCircle2, ShieldAlert, ShieldCheck, Save, Loader2 } from "lucide-react"
 import Link from "next/link"
+import { useSearchParams, useRouter } from "next/navigation"
 import { DATA_INPUTS, VALIDATION_QUESTIONS, CATEGORY_MAP, ALL_DVS_CATEGORIES } from "@/lib/data"
 import { gradeCategory } from "@/lib/dvs/calculator"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+<<<<<<< HEAD
 import { useAudit } from "@/contexts/AuditContext"
 
 export default function DataInputPage() {
   const { dataValues, updateDataValue, validationScores, updateValidationScore } = useAudit();
   
+=======
+import { getDataInput, saveDataInput } from "@/lib/api"
+
+export default function DataInputPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const projectId = searchParams.get("projectId") ? Number(searchParams.get("projectId")) : null;
+
+  const [dataValues, setDataValues] = useState<Record<string, string>>({});
+>>>>>>> 23e7e32 (updated db info)
   const [activeModalCategory, setActiveModalCategory] = useState<string | null>(null);
   const [modalAnswers, setModalAnswers] = useState<Record<string, string>>({});
+  
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+
+  // Fetch existing progress
+  useEffect(() => {
+    if (!projectId) return;
+
+    setLoading(true);
+    getDataInput(projectId)
+      .then(res => {
+        if (res) {
+          setDataValues(res.data_values || {});
+          setValidationScores(res.validation_scores || {});
+          setModalAnswers(res.modal_answers || {});
+        }
+      })
+      .catch(err => {
+        console.error("Failed to load progress:", err);
+        if (err.message?.includes("401")) router.push("/login");
+      })
+      .finally(() => setLoading(false));
+  }, [projectId, router]);
+
+  const handleSaveProgress = async () => {
+    if (!projectId) {
+      alert("No project selected to save progress.");
+      return;
+    }
+
+    setSaving(true);
+    setMessage(null);
+    try {
+      await saveDataInput(projectId, {
+        data_values: dataValues,
+        validation_scores: validationScores,
+        modal_answers: modalAnswers,
+      });
+      setMessage({ type: 'success', text: 'Progress saved successfully!' });
+      setTimeout(() => setMessage(null), 3000);
+    } catch (err: any) {
+      setMessage({ type: 'error', text: err.message || 'Failed to save progress' });
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleInputChange = (key: string, value: string) => {
     updateDataValue(key, value);
@@ -95,7 +154,7 @@ export default function DataInputPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Link 
-            href="/dashboard/create-project"
+            href={projectId ? `/dashboard/projects/${projectId}` : "/dashboard"}
             className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition-colors"
           >
             <ArrowLeft className="h-5 w-5" />
@@ -105,17 +164,42 @@ export default function DataInputPage() {
             <p className="text-slate-500">Enter system values and answer validation questions</p>
           </div>
         </div>
-        <Link
-          href="/dashboard/results"
-          className="flex items-center justify-center gap-2 rounded-xl bg-[#0f172a] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-black transition-all active:scale-95"
-        >
-          <CheckCircle2 className="h-4 w-4" />
-          Complete Audit Entry
-        </Link>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleSaveProgress}
+            disabled={saving || !projectId}
+            className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-[#0f172a] shadow-sm hover:bg-slate-50 transition-all active:scale-95 disabled:opacity-50"
+          >
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 text-[#0284c7]" />}
+            Save Progress
+          </button>
+          <Link
+            href={projectId ? `/dashboard/results?projectId=${projectId}` : "/dashboard/results"}
+            className="flex items-center justify-center gap-2 rounded-xl bg-[#0f172a] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-black transition-all active:scale-95"
+          >
+            <CheckCircle2 className="h-4 w-4" />
+            Complete Audit Entry
+          </Link>
+        </div>
       </div>
 
-      <div className="mb-10">
-        <h2 className="text-xl font-bold text-[#0f172a] mb-6">Core System Values</h2>
+      {message && (
+        <div className={`p-4 rounded-2xl text-sm font-medium animate-in fade-in slide-in-from-top-2 duration-300 ${message.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-red-50 text-red-700 border border-red-100'}`}>
+          {message.text}
+        </div>
+      )}
+
+
+
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-32 gap-4">
+          <Loader2 className="h-10 w-10 animate-spin text-[#0284c7]" />
+          <p className="text-slate-400 font-medium">Loading project progress...</p>
+        </div>
+      ) : (
+        <>
+          <div className="mb-10">
+            <h2 className="text-xl font-bold text-[#0f172a] mb-6">Core System Values</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {DATA_INPUTS.filter(input => CATEGORY_MAP[input.key]).map((input) => {
             const categoryKey = CATEGORY_MAP[input.key];
@@ -356,6 +440,8 @@ export default function DataInputPage() {
             </div>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   )

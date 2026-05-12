@@ -103,6 +103,19 @@ export async function deleteProject(id: number): Promise<void> {
   return apiFetch<void>(`/api/projects/${id}`, { method: "DELETE" });
 }
 
+// ── Data Input ───────────────────────────────────────────────────
+
+export async function getDataInput(projectId: number): Promise<DataInput> {
+  return apiFetch<DataInput>(`/api/projects/${projectId}/data-input`);
+}
+
+export async function saveDataInput(projectId: number, data: Partial<DataInput>): Promise<DataInput> {
+  return apiFetch<DataInput>(`/api/projects/${projectId}/data-input`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
 // ── Types ────────────────────────────────────────────────────────
 
 export interface UserProfile {
@@ -147,4 +160,14 @@ export interface ProjectCreate {
   capacity?: string;
   lead_auditor_name?: string;
   lead_auditor_email?: string;
+}
+
+export interface DataInput {
+  id: number;
+  project_id: number;
+  data_values: Record<string, string>;
+  validation_scores: Record<string, number>;
+  modal_answers: Record<string, string>;
+  created_at?: string;
+  updated_at?: string;
 }
