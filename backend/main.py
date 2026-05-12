@@ -17,7 +17,7 @@ app = FastAPI(title="WaterAudit API")
 # Setup CORS to allow requests from the Next.js frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -188,6 +188,68 @@ def delete_project(
     ).first()
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
-    db.delete(project)
     db.commit()
     return None
+
+
+# ── Data Input: Get Progress ──────────────────────────────────────
+@app.get("/api/projects/{project_id}/data-input", response_model=models.DataInputResponse)
+def get_data_input(
+    project_id: int,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    project = db.query(models.Project).filter(
+        models.Project.id == project_id,
+        models.Project.owner_id == current_user.id
+    ).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    data_input = db.query(models.DataInput).filter(models.DataInput.project_id == project_id).first()
+    if not data_input:
+        # Return an empty structure if none exists
+        return models.DataInputResponse(
+            id=0, 
+            project_id=project_id, 
+            data_values={}, 
+            validation_scores={}, 
+            modal_answers={},
+            created_at=project.created_at,
+            updated_at=project.updated_at
+        )
+    return data_input
+
+
+# ── Data Input: Save Progress ─────────────────────────────────────
+@app.post("/api/projects/{project_id}/data-input", response_model=models.DataInputResponse)
+def save_data_input(
+    project_id: int,
+    data: models.DataInputCreate,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    project = db.query(models.Project).filter(
+        models.Project.id == project_id,
+        models.Project.owner_id == current_user.id
+    ).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    db_data = db.query(models.DataInput).filter(models.DataInput.project_id == project_id).first()
+    if db_data:
+        db_data.data_values = data.data_values
+        db_data.validation_scores = data.validation_scores
+        db_data.modal_answers = data.modal_answers
+    else:
+        db_data = models.DataInput(
+            project_id=project_id,
+            data_values=data.data_values,
+            validation_scores=data.validation_scores,
+            modal_answers=data.modal_answers
+        )
+        db.add(db_data)
+    
+    db.commit()
+    db.refresh(db_data)
+    return db_data

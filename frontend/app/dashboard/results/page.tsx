@@ -1,10 +1,12 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ArrowLeft, Download, Share2, TrendingUp, Droplets, PieChart, Shield, Gauge, Users, Zap } from "lucide-react"
+import { ArrowLeft, Download, Share2, TrendingUp, Droplets, PieChart, Shield, Gauge, Users, Zap, ClipboardList, Loader2 } from "lucide-react"
 import Link from "next/link"
-import { useAudit } from "@/contexts/AuditContext"
-import { calculateDVS } from "@/lib/dvs/calculator"
+import { useSearchParams } from "next/navigation"
+import { getDataInput } from "@/lib/api"
+import { ALL_DVS_CATEGORIES, CATEGORY_MAP } from "@/lib/dvs"
+import { gradeCategory, calculateKPIs } from "@/lib/dvs/calculator"
 
 // ── Animated Gauge Component ─────────────────────────────────────
 
@@ -143,10 +145,14 @@ function WeightBar({ label, weight, grade, weighted }: {
 // ── Main Results Page ────────────────────────────────────────────
 
 export default function ResultsPage() {
-  const { validationScores, dataValues } = useAudit();
-  
-  // Run the data through our AWWA dynamic volume-weighted grading engine
-  const { overall: dvsScore, breakdown } = calculateDVS(validationScores, dataValues);
+  // Demo values — in production these come from the validation answers
+  const dvsScore = 72.45;
+  const breakdown = [
+    { label: "Supply Data", weight: 0.40, grade: 0.78, weighted: 0.312 },
+    { label: "Customer Metering Data", weight: 0.30, grade: 0.65, weighted: 0.195 },
+    { label: "Authorized Consumption & Losses", weight: 0.15, grade: 0.72, weighted: 0.108 },
+    { label: "System Attributes", weight: 0.15, grade: 0.68, weighted: 0.102 },
+  ];
 
   const kpis = {
     nrwPercentage: 34.56,
@@ -166,228 +172,305 @@ export default function ResultsPage() {
     return { label: "Very Low", color: "#dc2626", bg: "#fee2e2" };
   };
 
-  const grade = getDVSGrade(dvsScore);
+  // ── Main Results Page ────────────────────────────────────────────
 
-  return (
-    <div className="mx-auto max-w-6xl space-y-8 pb-20">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <Link
-            href="/dashboard/data-input"
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition-colors"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-          <div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-[#0f172a]">Audit Results</h1>
-            <p className="text-slate-500">Data Validity Score & Key Performance Indicators</p>
-          </div>
+  export default function ResultsPage() {
+    const searchParams = useSearchParams();
+    const projectId = searchParams.get("projectId") ? Number(searchParams.get("projectId")) : null;
+
+    const [loading, setLoading] = useState(true);
+    const [dataValues, setDataValues] = useState<Record<string, string>>({});
+    const [validationScores, setValidationScores] = useState<Record<string, number>>({});
+
+    // Real scores based on data
+    const [dvsScore, setDvsScore] = useState(0);
+    const [breakdown, setBreakdown] = useState<any[]>([]);
+
+    useEffect(() => {
+      async function loadData() {
+        if (!projectId) {
+          setLoading(false);
+          return;
+        }
+
+        try {
+          const progress = await getDataInput(projectId);
+          if (progress) {
+            setDataValues(progress.data_values || {});
+            setValidationScores(progress.validation_scores || {});
+
+            // Calculate real DVS score
+            let totalWeightedGrade = 0;
+            let totalWeight = 0;
+
+            const newBreakdown = ALL_DVS_CATEGORIES.map(category => {
+              const selectedIndices = category.validationQuestions.map(q =>
+                progress.validation_scores?.[q.id] !== undefined ? progress.validation_scores[q.id] : null
+              );
+
+              const grade = gradeCategory(selectedIndices, category.validationQuestions);
+              const weight = 1 / ALL_DVS_CATEGORIES.length;
+              totalWeightedGrade += grade * weight;
+              totalWeight += weight;
+
+              return {
+                label: category.displayName,
+                weight: weight,
+                grade: grade,
+                weighted: grade * weight
+              };
+            });
+
+            setDvsScore((totalWeightedGrade / totalWeight) * 100);
+            setBreakdown(newBreakdown);
+          }
+        } catch (error) {
+          console.error("Failed to load audit results:", error);
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      loadData();
+    }, [projectId]);
+
+
+
+
+
+    // DVS grade label
+    const grade = getDVSGrade(dvsScore);
+
+    if (loading) {
+      return (
+        <div className="flex flex-col items-center justify-center py-40 gap-4">
+          <Loader2 className="h-12 w-12 animate-spin text-[#0284c7]" />
+          <p className="text-slate-500 font-medium animate-pulse">Analyzing audit results...</p>
         </div>
-        <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors shadow-sm">
-            <Share2 className="h-4 w-4" />
-            Share
-          </button>
-          <button className="flex items-center gap-2 rounded-xl bg-[#0f172a] px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-black transition-all active:scale-95">
-            <Download className="h-4 w-4" />
-            Export Report
-          </button>
-        </div>
-      </div>
+      );
+    }
 
-      {/* ── Hero DVS Card ─────────────────────────────────────── */}
-      <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#334155] p-8 text-white shadow-xl">
-        {/* Decorative circles */}
-        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-white/5 blur-2xl" />
-        <div className="absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-[#0284c7]/10 blur-xl" />
+    // Derived Indicators for the end of the page
+    const calcIndicator = (formula: () => number) => {
+      try {
+        const val = formula();
+        return isFinite(val) ? val.toFixed(2) : "0.00";
+      } catch (e) {
+        return "0.00";
+      }
+    };
 
-        <div className="relative flex flex-col lg:flex-row items-center gap-8">
-          {/* Main gauge */}
-          <div className="flex-shrink-0">
-            <div className="relative">
-              <svg width="240" height="140" viewBox="0 0 260 150" className="drop-shadow-lg">
-                <defs>
-                  <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#ef4444" />
-                    <stop offset="30%" stopColor="#f59e0b" />
-                    <stop offset="60%" stopColor="#3b82f6" />
-                    <stop offset="100%" stopColor="#22c55e" />
-                  </linearGradient>
-                </defs>
-                {/* Background */}
-                <path
-                  d="M 20 130 A 110 110 0 0 1 240 130"
-                  fill="none"
-                  stroke="rgba(255,255,255,0.1)"
-                  strokeWidth="18"
-                  strokeLinecap="round"
-                />
-                {/* Filled arc */}
-                <path
-                  d="M 20 130 A 110 110 0 0 1 240 130"
-                  fill="none"
-                  stroke="url(#gaugeGradient)"
-                  strokeWidth="18"
-                  strokeLinecap="round"
-                  strokeDasharray={`${Math.PI * 110}`}
-                  strokeDashoffset={`${Math.PI * 110 - (dvsScore / 100) * Math.PI * 110}`}
-                  style={{
-                    transition: "stroke-dashoffset 2s cubic-bezier(0.4, 0, 0.2, 1)",
-                    filter: "drop-shadow(0 0 12px rgba(59,130,246,0.3))"
-                  }}
-                />
-                {/* Tick labels */}
-                {[0, 25, 50, 75, 100].map((tick) => {
-                  const angle = Math.PI - (tick / 100) * Math.PI;
-                  const x = 130 + 125 * Math.cos(angle);
-                  const y = 130 - 125 * Math.sin(angle);
-                  return (
-                    <text key={tick} x={x} y={y} textAnchor="middle" fill="rgba(255,255,255,0.4)"
-                      fontSize="10" fontWeight="600">{tick}</text>
-                  );
-                })}
-              </svg>
-              {/* Center display */}
-              <div className="absolute inset-0 flex flex-col items-center justify-end pb-3">
-                <span className="text-5xl font-black tracking-tighter">{dvsScore.toFixed(2)}</span>
-                <span className="text-xs font-medium text-white/50 mt-0.5">out of 100</span>
-              </div>
-            </div>
-          </div>
+    // Calculate real KPIs using the new formulas
+    const numericData = Object.keys(dataValues).reduce((acc, key) => {
+      acc[key] = Number(dataValues[key]) || 0;
+      return acc;
+    }, {} as Record<string, number>);
 
-          {/* Info panel */}
-          <div className="flex-1 space-y-4 text-center lg:text-left">
+    const realKpis = calculateKPIs(numericData);
+
+    const indicators = [
+      {
+        label: "Non-Revenue Water (NRW %)",
+        value: realKpis.nrwPercentage.toFixed(2) + " %"
+      },
+      {
+        label: "Revenue Water Ratio (RWR %)",
+        value: realKpis.revenueWaterRatio.toFixed(2) + " %"
+      },
+      {
+        label: "Infrastructure Leakage Index (ILI)",
+        value: realKpis.infrastructureLeakageIndex.toFixed(2)
+      },
+      {
+        label: "Current Annual Real Losses (CARL - Litres)",
+        value: realKpis.carl.toLocaleString()
+      },
+      {
+        label: "Unavoidable Annual Real Losses (UARL - Litres)",
+        value: realKpis.uarl.toLocaleString()
+      },
+      {
+        label: "Coverage of water supply (%)",
+        value: calcIndicator(() => (Number(dataValues.HouseholdsWithConnection || 0) * 100) / Number(dataValues.TotalHouseholds || 1))
+      },
+      {
+        label: "Per Capita Water Supplied (Liters/Month)",
+        value: calcIndicator(() => Number(dataValues.WaterSupplied || 0) / (Number(dataValues.DaysInMonth || 1) * Number(dataValues.Population || 1)))
+      },
+      {
+        label: "Extent of metering of water connections (%)",
+        value: calcIndicator(() => (Number(dataValues.MeteredDirectConnections || 0) + Number(dataValues.MeteredPublicStandposts || 0)) * 100 / (Number(dataValues.TotalDirectConnections || 0) + Number(dataValues.TotalMeteredDirectConnections || 1)))
+      },
+      {
+        label: "Quantity of Water Supplied (%)",
+        value: calcIndicator(() => (Number(dataValues.WaterQualitySamples || 0) * 100) / Number(dataValues.TotalComplaints || 1))
+      },
+      {
+        label: "Efficiency in redressal of customer complaints (%)",
+        value: calcIndicator(() => Number(dataValues.ComplaintsRedressed || 0) * 100 / Number(dataValues.TotalComplaints || 1))
+      },
+      {
+        label: "Cost Recovery in water supply services (%)",
+        value: calcIndicator(() => Number(dataValues.AnnualRevenues || 0) * 100 / Number(dataValues.AnnualExpenses || 1))
+      },
+      {
+        label: "Efficiency in the collection of water related charges (%)",
+        value: calcIndicator(() => Number(dataValues.CurrentRevenuesCollected || 0) * 100 / Number(dataValues.TotalRevenuesBilled || 1))
+      },
+    ];
+
+    // Derived KPIs for Gauge Charts
+    const kpis = {
+      nrwPercentage: realKpis.nrwPercentage,
+      revenueWaterRatio: realKpis.revenueWaterRatio,
+      economicalLeakageLevel: realKpis.economicalLeakageLevel,
+      infrastructureLeakageIndex: realKpis.infrastructureLeakageIndex,
+      coverageOfConnections: realKpis.coverageOfConnections,
+      perCapitaWaterSupply: realKpis.perCapitaWaterSupply,
+    };
+
+    return (
+      <div className="mx-auto max-w-6xl space-y-8 pb-20">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <Link
+              href={projectId ? `/dashboard/data-input?projectId=${projectId}` : "/dashboard/data-input"}
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
             <div>
-              <div className="flex items-center justify-center lg:justify-start gap-3 mb-2">
-                <h2 className="text-2xl font-bold">Data Validity Score</h2>
-                <span className="rounded-full px-3 py-1 text-xs font-bold" style={{ backgroundColor: grade.bg, color: grade.color }}>
-                  {grade.label}
-                </span>
+              <h1 className="text-3xl font-extrabold tracking-tight text-[#0f172a]">Audit Results</h1>
+              <p className="text-slate-500">Data Validity Score & Key Performance Indicators</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <button className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors shadow-sm">
+              <Share2 className="h-4 w-4" />
+              Share
+            </button>
+            <button className="flex items-center gap-2 rounded-xl bg-[#0f172a] px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-black transition-all active:scale-95">
+              <Download className="h-4 w-4" />
+              Export Report
+            </button>
+          </div>
+        </div>
+
+        {/* ── Hero DVS Card ─────────────────────────────────────── */}
+        <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#334155] p-8 text-white shadow-xl">
+          <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-white/5 blur-2xl" />
+          <div className="absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-[#0284c7]/10 blur-xl" />
+
+          <div className="relative flex flex-col lg:flex-row items-center gap-8">
+            <div className="flex-shrink-0">
+              <div className="relative">
+                <svg width="240" height="140" viewBox="0 0 260 150" className="drop-shadow-lg">
+                  <defs>
+                    <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#ef4444" />
+                      <stop offset="30%" stopColor="#f59e0b" />
+                      <stop offset="60%" stopColor="#3b82f6" />
+                      <stop offset="100%" stopColor="#22c55e" />
+                    </linearGradient>
+                  </defs>
+                  <path d="M 20 130 A 110 110 0 0 1 240 130" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="18" strokeLinecap="round" />
+                  <path
+                    d="M 20 130 A 110 110 0 0 1 240 130"
+                    fill="none"
+                    stroke="url(#gaugeGradient)"
+                    strokeWidth="18"
+                    strokeLinecap="round"
+                    strokeDasharray={`${Math.PI * 110}`}
+                    strokeDashoffset={`${Math.PI * 110 - (dvsScore / 100) * Math.PI * 110}`}
+                    style={{ transition: "stroke-dashoffset 2s cubic-bezier(0.4, 0, 0.2, 1)" }}
+                  />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-end pb-3">
+                  <span className="text-5xl font-black tracking-tighter">{dvsScore.toFixed(2)}</span>
+                  <span className="text-xs font-medium text-white/50 mt-0.5">out of 100</span>
+                </div>
               </div>
-              <p className="text-white/60 text-sm max-w-md">
-                Evaluates the reliability of input data used in water audit analysis.
-                Based on weighted grading of supply data, customer metering, authorized consumption, and system attributes.
-              </p>
             </div>
 
-            {/* Formula display */}
-            <div className="inline-flex items-center gap-2 rounded-2xl bg-white/5 border border-white/10 px-4 py-2.5 backdrop-blur-sm">
-              <span className="text-xs font-mono text-white/40">DVS =</span>
-              <span className="text-xs font-mono text-[#38bdf8]">Σ(Wᵢ × Gᵢ) / Σ(Wᵢ)</span>
-              <span className="text-xs font-mono text-white/40">× 100</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Weight Breakdown ──────────────────────────────────── */}
-      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-5">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#e0f2fe]">
-            <PieChart className="h-4.5 w-4.5 text-[#0284c7]" />
-          </div>
-          <div>
-            <h3 className="text-lg font-bold text-[#0f172a]">Category Breakdown</h3>
-            <p className="text-xs text-slate-500">Weighted contribution of each data category to the overall DVS</p>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          {breakdown.map((b, i) => (
-            <WeightBar key={i} {...b} />
-          ))}
-        </div>
-
-        {/* Summary row */}
-        <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-          <span className="text-sm font-bold text-[#0f172a]">Overall Weighted Score</span>
-          <span className="text-lg font-black text-[#0284c7]">{dvsScore.toFixed(2)}%</span>
-        </div>
-      </div>
-
-      {/* ── KPI Gauges Grid ───────────────────────────────────── */}
-      <div>
-        <div className="flex items-center gap-3 mb-5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f0fdf4]">
-            <TrendingUp className="h-4.5 w-4.5 text-[#16a34a]" />
-          </div>
-          <div>
-            <h3 className="text-lg font-bold text-[#0f172a]">Key Performance Indicators</h3>
-            <p className="text-xs text-slate-500">Derived from your audit data inputs</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          <GaugeChart
-            value={kpis.nrwPercentage}
-            max={100}
-            label="Non-Revenue Water"
-            icon={Droplets}
-            color="auto"
-            suffix="%"
-          />
-          <GaugeChart
-            value={kpis.revenueWaterRatio}
-            max={100}
-            label="Revenue Water Ratio"
-            icon={TrendingUp}
-            color="auto"
-            suffix="%"
-          />
-          <GaugeChart
-            value={kpis.economicalLeakageLevel}
-            max={5}
-            label="Economical Leakage Level"
-            icon={Zap}
-            color="#0284c7"
-          />
-          <GaugeChart
-            value={kpis.infrastructureLeakageIndex}
-            max={10}
-            label="Infrastructure Leakage Index"
-            icon={Gauge}
-            color="auto"
-          />
-          <GaugeChart
-            value={kpis.coverageOfConnections}
-            max={100}
-            label="Coverage of Supply Connections"
-            icon={Users}
-            color="auto"
-            suffix="%"
-          />
-          <GaugeChart
-            value={kpis.perCapitaWaterSupply}
-            max={200}
-            label="Per Capita Water Supply"
-            icon={Shield}
-            color="#0284c7"
-            suffix="LPCD"
-          />
-        </div>
-      </div>
-
-      {/* ── DVS Weightage Info ────────────────────────────────── */}
-      <div className="rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-6 shadow-sm">
-        <h3 className="text-lg font-bold text-[#0f172a] mb-4">DVS Weightage Distribution</h3>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[
-            { label: "Supply Data", weight: "40%", color: "#3b82f6", icon: Droplets },
-            { label: "Customer Metering", weight: "30%", color: "#8b5cf6", icon: Gauge },
-            { label: "Consumption & Losses", weight: "15%", color: "#f59e0b", icon: PieChart },
-            { label: "System Attributes", weight: "15%", color: "#22c55e", icon: Shield },
-          ].map((item, i) => (
-            <div key={i} className="flex flex-col items-center gap-2 rounded-2xl border border-slate-100 bg-white p-5 text-center shadow-sm">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl" style={{ backgroundColor: `${item.color}15` }}>
-                <item.icon className="h-5 w-5" style={{ color: item.color }} />
+            <div className="flex-1 space-y-4 text-center lg:text-left">
+              <div>
+                <div className="flex items-center justify-center lg:justify-start gap-3 mb-2">
+                  <h2 className="text-2xl font-bold">Data Validity Score</h2>
+                  <span className="rounded-full px-3 py-1 text-xs font-bold" style={{ backgroundColor: grade.bg, color: grade.color }}>
+                    {grade.label}
+                  </span>
+                </div>
+                <p className="text-white/60 text-sm max-w-md">
+                  Evaluates the reliability of input data used in water audit analysis based on standard auditing principles.
+                </p>
               </div>
-              <span className="text-2xl font-black" style={{ color: item.color }}>{item.weight}</span>
-              <span className="text-xs font-semibold text-slate-500 leading-tight">{item.label}</span>
             </div>
-          ))}
+          </div>
+        </div>
+
+        {/* ── Weight Breakdown ──────────────────────────────────── */}
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-5">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#e0f2fe]">
+              <PieChart className="h-4.5 w-4.5 text-[#0284c7]" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-[#0f172a]">Category Breakdown</h3>
+              <p className="text-xs text-slate-500">Weighted contribution of each data category</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {breakdown.map((b, i) => (
+              <WeightBar key={i} label={b.label} weight={b.weight} grade={b.grade} weighted={b.weighted} />
+            ))}
+          </div>
+        </div>
+
+        {/* ── KPI Gauges Grid ───────────────────────────────────── */}
+        <div>
+          <div className="flex items-center gap-3 mb-5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f0fdf4]">
+              <TrendingUp className="h-4.5 w-4.5 text-[#16a34a]" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-[#0f172a]">Key Performance Indicators</h3>
+              <p className="text-xs text-slate-500">Real-time metrics from audit inputs</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <GaugeChart value={kpis.nrwPercentage} max={100} label="Non-Revenue Water" icon={Droplets} color="auto" suffix="%" />
+            <GaugeChart value={kpis.revenueWaterRatio} max={100} label="Revenue Water Ratio" icon={TrendingUp} color="auto" suffix="%" />
+            <GaugeChart value={kpis.economicalLeakageLevel} max={5} label="Economical Leakage" icon={Zap} color="#0284c7" />
+            <GaugeChart value={kpis.infrastructureLeakageIndex} max={10} label="Infrastructure Leakage Index" icon={Gauge} color="auto" />
+            <GaugeChart value={kpis.coverageOfConnections} max={100} label="Supply Coverage" icon={Users} color="auto" suffix="%" />
+            <GaugeChart value={kpis.perCapitaWaterSupply} max={200} label="Per Capita Supply" icon={Shield} color="#0284c7" suffix="LPCD" />
+          </div>
+        </div>
+
+        {/* ── Custom Indicator Values ───────────────────────────── */}
+        <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100">
+              <ClipboardList className="h-4.5 w-4.5 text-slate-600" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-[#0f172a]">Service Level Benchmarks</h3>
+              <p className="text-xs text-slate-500">Calculated based on standard SLB formulas</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-12">
+            {indicators.map((indicator, idx) => (
+              <div key={idx} className="flex items-center justify-between py-3 border-b border-slate-50 last:border-0">
+                <span className="text-sm font-medium text-slate-600 pr-4">{indicator.label}</span>
+                <span className="text-lg font-bold text-[#0f172a] whitespace-nowrap">{indicator.value}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
