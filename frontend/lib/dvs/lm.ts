@@ -20,11 +20,15 @@ export const LM: DVSCategory = {
       options: [
         "Verified directly from mains inventory records (GIS, logbooks, and related documentation)",
         "Provisionally estimated in the absence of precise data"
-      ]
+      ],
+      weight: 30,
+      scores: [10, 2]
     },
     {
       question: "Does the input derivation include hydrant laterals?",
-      inputType: "yesno"
+      inputType: "yesno",
+      weight: 10,
+      scores: [10, 5]
     },
     {
       question: "How is the record of water mains (like GIS map, asset register, or ledger) updated and maintained?",
@@ -33,7 +37,9 @@ export const LM: DVSCategory = {
         "Additions and subtractions in the mains inventory (GIS, logbooks, etc.) are recorded and updated at least annually",
         "Additions and subtractions to the mains inventory (GIS, logbooks, etc.) are recorded, but updates are performed less than annually",
         "Mains inventory (GIS, logbooks, etc.) is either not maintained or not kept up to date"
-      ]
+      ],
+      weight: 40,
+      scores: [10, 6, 0]
     },
     {
       question: "How often is the mains inventory (GIS or records) verified in the field to ensure it matches actual ground conditions?",
@@ -41,7 +47,9 @@ export const LM: DVSCategory = {
       options: [
         "Field validation performed",
         "No field validation is performed, either during routine operations or through dedicated validation projects"
-      ]
+      ],
+      weight: 20,
+      scores: [10, 0]
     }
   ]
 };

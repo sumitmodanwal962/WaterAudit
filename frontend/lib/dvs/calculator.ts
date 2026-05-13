@@ -54,12 +54,9 @@ export function gradeCategory(
   selectedIndices: (number | null)[],
   questions: ValidationQuestion[]
 ): number {
-  if (!questions || questions.length === 0 || selectedIndices.length === 0) return 0;
+  if (!questions || questions.length === 0 || selectedIndices.length === 0) return 0.1;
 
-  let totalWeightedScore = 0;
-  let totalWeight = 0;
-
-  // Backward compatibility: If no weights are defined, fallback to index-based logic
+  let grade = 0;
   const hasWeights = questions.some(q => q.weight !== undefined);
 
   if (!hasWeights) {
@@ -71,44 +68,48 @@ export function gradeCategory(
       score += selectedIndices[i]!;
       max += maxIdx;
     }
-    return max > 0 ? score / max : 0;
-  }
+    grade = max > 0 ? score / max : 0;
+  } else {
+    // New logic: weighted option scores
+    let totalWeightedScore = 0;
+    let totalWeight = 0;
 
-  // New logic: weighted option scores
-  for (let i = 0; i < selectedIndices.length; i++) {
-    const q = questions[i];
-    const answerIdx = selectedIndices[i];
+    for (let i = 0; i < selectedIndices.length; i++) {
+      const q = questions[i];
+      const answerIdx = selectedIndices[i];
 
-    if (answerIdx === null || answerIdx === undefined) continue;
+      if (answerIdx === null || answerIdx === undefined) continue;
 
-    const w = q.weight !== undefined ? q.weight : 1;
-    
-    let optionScore = 0;
-    if (q.scores && q.scores.length > answerIdx) {
-      optionScore = q.scores[answerIdx];
-    } else {
-      const maxIdx = (q.options?.length || 2) - 1;
-      optionScore = maxIdx > 0 ? (answerIdx / maxIdx) * 10 : 0;
-    }
-
-    totalWeightedScore += w * optionScore;
-    totalWeight += w;
-  }
-
-  if (totalWeight === 0) {
-    // Edge case: All answered questions had 0 weight (e.g. gate question)
-    const firstAnswered = selectedIndices.findIndex(idx => idx !== null && idx !== undefined);
-    if (firstAnswered !== -1) {
-      const q = questions[firstAnswered];
-      const ans = selectedIndices[firstAnswered]!;
-      if (q.scores && q.scores.length > ans) {
-        return q.scores[ans] / 10;
+      const w = q.weight !== undefined ? q.weight : 1;
+      
+      let optionScore = 0;
+      if (q.scores && q.scores.length > answerIdx) {
+        optionScore = q.scores[answerIdx];
+      } else {
+        const maxIdx = (q.options?.length || 2) - 1;
+        optionScore = maxIdx > 0 ? (answerIdx / maxIdx) * 10 : 0;
       }
+
+      totalWeightedScore += w * optionScore;
+      totalWeight += w;
     }
-    return 0;
+
+    if (totalWeight === 0) {
+      // Edge case: All answered questions had 0 weight (e.g. gate question)
+      const firstAnswered = selectedIndices.findIndex(idx => idx !== null && idx !== undefined);
+      if (firstAnswered !== -1) {
+        const q = questions[firstAnswered];
+        const ans = selectedIndices[firstAnswered]!;
+        if (q.scores && q.scores.length > ans) {
+          grade = q.scores[ans] / 10;
+        }
+      }
+    } else {
+      grade = (totalWeightedScore / totalWeight) / 10;
+    }
   }
 
-  return (totalWeightedScore / totalWeight) / 10;
+  return Math.max(0.1, grade);
 }
 
 /**
