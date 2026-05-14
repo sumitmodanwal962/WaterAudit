@@ -132,18 +132,20 @@ export default function DataInputPage() {
                   </div>
                   <p className="text-sm text-slate-500 mb-4 h-10 line-clamp-2">{input.description}</p>
                   
-                  <div className="flex items-center bg-slate-50 rounded-xl border border-slate-200 overflow-hidden focus-within:ring-1 focus-within:ring-[#0284c7] focus-within:border-[#0284c7] transition-all">
-                    <input
-                      type={input.type === 'number' || input.type === 'volume' || input.type === 'integer' || input.type === 'currency' ? 'number' : 'text'}
-                      placeholder="0.00"
-                      value={dataValues[input.key] || ''}
-                      onChange={(e) => handleInputChange(input.key, e.target.value)}
-                      className="w-full bg-transparent px-4 py-3 text-sm font-medium text-[#0f172a] outline-none"
-                    />
-                    <div className="px-3 text-xs font-semibold text-slate-400 bg-slate-100 border-l border-slate-200 h-full flex items-center justify-center whitespace-nowrap">
-                      {input.unit}
+                  {!input.noInput && (
+                    <div className="flex items-center bg-slate-50 rounded-xl border border-slate-200 overflow-hidden focus-within:ring-1 focus-within:ring-[#0284c7] focus-within:border-[#0284c7] transition-all">
+                      <input
+                        type={input.type === 'number' || input.type === 'volume' || input.type === 'integer' || input.type === 'currency' ? 'number' : 'text'}
+                        placeholder="0.00"
+                        value={dataValues[input.key] || ''}
+                        onChange={(e) => handleInputChange(input.key, e.target.value)}
+                        className="w-full bg-transparent px-4 py-3 text-sm font-medium text-[#0f172a] outline-none"
+                      />
+                      <div className="px-3 text-xs font-semibold text-slate-400 bg-slate-100 border-l border-slate-200 h-full flex items-center justify-center whitespace-nowrap">
+                        {input.unit}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
 
                 <div className="mt-auto pt-4 border-t border-slate-100">

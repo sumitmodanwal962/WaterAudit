@@ -18,6 +18,7 @@ export interface DataInput {
   description: string;
   type: "volume" | "number" | "integer" | "currency";
   unit: string;
+  noInput?: boolean;
 }
 
 export interface SkipRule {
