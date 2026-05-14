@@ -2,12 +2,10 @@ import { DVSCategory } from "./types";
 
 export const VOS_WI_WE: DVSCategory = {
   categoryKey: "VOS_WI_WE",
-  label: "Volume from Own Sources / Water Imported / Water Exported",
-  description: "Water production, import, and export volumes",
+  label: "Volume from Own Sources",
+  description: "Water production volumes from own sources",
   inputs: [
     { key: "VOS", label: "Volume from Own Sources", description: "Total volume of water produced from own sources", type: "volume", unit: "MLD" },
-    { key: "WI", label: "Water Imported", description: "Total volume of water imported from external sources", type: "volume", unit: "MLD" },
-    { key: "WE", label: "Water Exported", description: "Total volume of water exported to other utilities", type: "volume", unit: "MLD" },
   ],
   skipRules: [
     // Q1 (idx 0): "No" = no own sources → skip everything else

@@ -17,7 +17,9 @@ export const UWW: DVSCategory = {
         "Derived from supply data (partial check)",
         "Fixed return ratio (no validation)",
         "Assumed design norms only"
-      ]
+      ],
+      weight: 25,
+      scores: [10, 8, 5, 2, 0]
     },
     {
       question: "Are wastewater flow measurements at pumping stations, manholes, or treatment plants regularly verified for accuracy?",
@@ -28,7 +30,9 @@ export const UWW: DVSCategory = {
         "Annual internal test",
         "Verified during fault events",
         "Not verified"
-      ]
+      ],
+      weight: 20,
+      scores: [10, 8, 5, 2, 0]
     },
     {
       question: "How consistent are the wastewater data records (daily, monthly, or annually) maintained across multiple agencies or departments?",
@@ -39,7 +43,9 @@ export const UWW: DVSCategory = {
         "Annual reconciliation",
         "Irregular reporting",
         "No coordination"
-      ]
+      ],
+      weight: 15,
+      scores: [10, 8, 5, 2, 0]
     },
     {
       question: "Are flow meters and sensors in the wastewater system calibrated and maintained as per standard procedures?",
@@ -50,7 +56,9 @@ export const UWW: DVSCategory = {
         "Annual internal calibration",
         "Irregular manual check",
         "Not calibrated"
-      ]
+      ],
+      weight: 20,
+      scores: [10, 8, 5, 2, 0]
     },
     {
       question: "How are missing data, meter malfunctions, or gaps in flow records identified and corrected in official reporting?",
@@ -61,7 +69,9 @@ export const UWW: DVSCategory = {
         "Simple interpolation",
         "Manually corrected",
         "Not addressed"
-      ]
+      ],
+      weight: 10,
+      scores: [10, 8, 5, 2, 0]
     },
     {
       question: "What level of confidence does the utility have in the accuracy and completeness of wastewater generation and collection data?",
@@ -72,7 +82,9 @@ export const UWW: DVSCategory = {
         "Medium",
         "Low",
         "Very Low"
-      ]
+      ],
+      weight: 10,
+      scores: [10, 8, 5, 2, 0]
     }
   ]
 };

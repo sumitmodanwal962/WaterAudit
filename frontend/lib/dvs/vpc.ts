@@ -22,7 +22,9 @@ export const VPC: DVSCategory = {
         "There is only one water source, which served as the basis for the input derivation",
         "A simple average was computed using data from multiple sources",
         "Provisionally estimated in the absence of precise data"
-      ]
+      ],
+      weight: 15,
+      scores: [10, 8, 10, 10, 6, 2]
     },
     {
       question: "Choose the option that most accurately describes the short-run marginal costs included in this input. Short-run marginal costs may comprise treatment chemicals and power, distribution pumping power, and water acquisition or extraction charges. Depending on the system design, some of these costs may not apply.\nThe auditor should evaluate system operations to determine which costs are relevant for the VPC calculation. Guidance is available in the latest CPHEEO Manual",
@@ -30,7 +32,9 @@ export const VPC: DVSCategory = {
       options: [
         "All relevant short-run marginal costs have been fully incorporated",
         "Only a portion of the relevant short-run marginal costs has been incorporated"
-      ]
+      ],
+      weight: 35,
+      scores: [10, 4]
     },
     {
       question: "Choose the option that most accurately reflects the long-run marginal costs included in the input. These may include treatment residuals management, accelerated equipment wear due to operational use, payouts from main or service line break claims, costs linked to expanding supply capacity or managing scarcity, and full-cost pricing that incorporates lifecycle and externality costs. Depending on the system, some of these costs may not apply. The auditor should review system operations to determine which are relevant. Refer to the CPHEEO Manual for further guidance",
@@ -39,11 +43,15 @@ export const VPC: DVSCategory = {
         "All relevant long-run marginal costs were assessed for applicability and have been fully incorporated",
         "Applicable long-run marginal costs were assessed, and while some have been incorporated, others remain excluded",
         "An evaluation of applicable long-run marginal costs has not been undertaken, and these costs have not been incorporated"
-      ]
+      ],
+      weight: 30,
+      scores: [10, 6, 1]
     },
     {
       question: "Has the derivation of this input been evaluated by a qualified expert?",
-      inputType: "yesno"
+      inputType: "yesno",
+      weight: 20,
+      scores: [10, 0]
     }
   ]
 };

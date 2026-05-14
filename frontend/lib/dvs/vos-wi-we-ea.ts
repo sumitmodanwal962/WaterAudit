@@ -4,24 +4,32 @@ export const VOS_WI_WE_EA: DVSCategory = {
   categoryKey: "VOS_WI_WE_EA",
   label: "VOSEA (Error Adjustment)",
   description: "Error adjustments for volume from own sources",
-  inputs: [],
+  inputs: [
+    { key: "VOSEA", label: "VOS Error Adjustment", description: "Error adjustment volume for own sources", type: "volume", unit: "MLD", noInput: true },
+  ],
   validationQuestions: [
     {
       question: "Are water storage tank levels automatically monitored and documented every day?",
-      inputType: "yesno"
+      inputType: "yesno",
+      weight: 15,
+      scores: [10, 2]
     },
     {
-      question: "Are day-to-day changes in storage tank water volumes of the distribution system included while considering the \u201Cdaily volume from own sources\u201D?",
+      question: "Are day-to-day changes in storage tank water volumes of the distribution system included while considering the “daily volume from own sources”?",
       inputType: "select",
       options: [
-        "Not known",
+        "Yes",
         "No",
-        "Yes"
-      ]
+        "Not known"
+      ],
+      weight: 25,
+      scores: [10, 2, 0]
     },
     {
-      question: "Is the yearly net change in distribution system storage considered in the data for \u201CVolume from Own Sources\u201D or in the VOSEA calculation?",
-      inputType: "yesno"
+      question: "Is the yearly net change in distribution system storage considered in the data for “Volume from Own Sources” or in the VOSEA calculation?",
+      inputType: "yesno",
+      weight: 20,
+      scores: [10, 2]
     },
     {
       question: "Are flow test and electronic calibration results integrated into the VOSEA data for the water audit?",
@@ -31,7 +39,9 @@ export const VOS_WI_WE_EA: DVSCategory = {
         "Results are available and error adjustment has been made",
         "Results are available but not analyzed",
         "Due to unavailability of results the error adjustments have been made"
-      ]
+      ],
+      weight: 40,
+      scores: [6, 10, 1, 4]
     }
   ]
 };
