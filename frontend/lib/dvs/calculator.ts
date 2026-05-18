@@ -19,7 +19,7 @@ export const DVS_WEIGHTS: DVSCategoryWeight[] = [
     category: "supply",
     label: "Supply Data",
     weight: 0.40,
-    categoryKeys: ["VOS_WI_WE", "VOS_WI_WE_EA", "WI_WE_EA"]
+    categoryKeys: ["VOS", "VOS_WI_WE_EA", "WI_WE_EA", "WI", "WE"]
   },
   {
     category: "metering",
