@@ -2,11 +2,9 @@ import { DVSCategory } from "./types";
 
 export const WI_WE_EA: DVSCategory = {
   categoryKey: "WI_WE_EA",
-  label: "WIEA / WEEA (Water Import/Export Error Adjustment)",
-  description: "Error adjustments for water imported and exported volumes",
+  label: "WI/WE Error Adjustment",
+  description: "Error adjustment for water imported and exported volumes",
   inputs: [
-    { key: "WI", label: "Water Imported", description: "Total volume of water imported from external sources", type: "volume", unit: "MLD" },
-    { key: "WE", label: "Water Exported", description: "Total volume of water exported to other utilities", type: "volume", unit: "MLD" },
     { key: "WE_WI_EA", label: "WE/WI Error Adjustment", description: "Error adjustment for imported/exported water", type: "volume", unit: "MLD", noInput: true },
   ],
   validationQuestions: [

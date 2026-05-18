@@ -4,8 +4,10 @@ export type { ValidationQuestion, DataInput, DVSCategory } from "./types";
 export { calculateDVS, calculateKPIs, gradeCategory, DVS_WEIGHTS } from "./calculator";
 export type { DVSCategoryWeight, KPIResults } from "./calculator";
 
-export { VOS_WI_WE } from "./vos-wi-we";
+export { VOS } from "./vos";
 export { VOS_WI_WE_EA } from "./vos-wi-we-ea";
+export { WI } from "./wi";
+export { WE } from "./we";
 export { WI_WE_EA } from "./wi-we-ea";
 export { BMAC } from "./bmac";
 export { BUAC } from "./buac";
@@ -24,8 +26,10 @@ export { VPC } from "./vpc";
 
 // ── Convenience aggregates used by the data-input page ──────────
 
-import { VOS_WI_WE } from "./vos-wi-we";
+import { VOS } from "./vos";
 import { VOS_WI_WE_EA } from "./vos-wi-we-ea";
+import { WI } from "./wi";
+import { WE } from "./we";
 import { WI_WE_EA } from "./wi-we-ea";
 import { BMAC } from "./bmac";
 import { BUAC } from "./buac";
@@ -45,8 +49,10 @@ import { DVSCategory, DataInput, ValidationQuestion } from "./types";
 
 /** Ordered list of all DVS categories */
 export const ALL_DVS_CATEGORIES: DVSCategory[] = [
-  VOS_WI_WE,
+  VOS,
   VOS_WI_WE_EA,
+  WI,
+  WE,
   WI_WE_EA,
   BMAC,
   BUAC,

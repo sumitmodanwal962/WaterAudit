@@ -1,14 +1,14 @@
 import { DVSCategory } from "./types";
 
-export const VOS_WI_WE: DVSCategory = {
-  categoryKey: "VOS_WI_WE",
-  label: "Volume from Own Sources",
-  description: "Water production volumes from own sources",
+export const WE: DVSCategory = {
+  categoryKey: "WE",
+  label: "Water Exported (WE)",
+  description: "Volumes of water exported to other utilities",
   inputs: [
-    { key: "VOS", label: "Volume from Own Sources", description: "Total volume of water produced from own sources", type: "volume", unit: "MLD" },
+    { key: "WE", label: "Water Exported", description: "Total volume of water exported to other utilities", type: "volume", unit: "MLD" },
   ],
   skipRules: [
-    // Q1 (idx 0): "No" = no own sources → skip everything else
+    // Q1 (idx 0): "No" = no exported volumes → skip everything else
     { questionIndex: 0, triggerValue: "no", skipQuestionIndices: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
     // Q3 (idx 2): "Not done for the last 5 years" (option 5) → skip Q4, Q5
     { questionIndex: 2, triggerValue: "5", skipQuestionIndices: [3, 4] },
@@ -19,13 +19,13 @@ export const VOS_WI_WE: DVSCategory = {
   ],
   validationQuestions: [
     {
-      question: "Did the utility produce and supply water from its own sources, such as borewells, treatment plants, or local reservoirs, etc, during the audit year?",
+      question: "Did the utility export and supply water to other utilities or bulk consumers, etc, during the audit year?",
       inputType: "yesno",
       weight: 0,
       scores: [10, 1]
     },
     {
-      question: "What percentage of the utility's self-produced water is measured through installed and functional flow meters?",
+      question: "What percentage of the utility's exported water is measured through installed and functional flow meters?",
       inputType: "select",
       options: [
         "> 90%",
@@ -39,7 +39,7 @@ export const VOS_WI_WE: DVSCategory = {
       scores: [10, 8, 6, 4, 2, 1]
     },
     {
-      question: "How frequently are the flow meters at the source electronically calibrated to authenticate accuracy?",
+      question: "How frequently are the flow meters at the export point electronically calibrated to authenticate accuracy?",
       inputType: "select",
       options: [
         "No need to calibrate",
@@ -53,7 +53,7 @@ export const VOS_WI_WE: DVSCategory = {
       scores: [10, 9, 8, 6, 4, 0]
     },
     {
-      question: "To what extent is data transfer integrity incorporated into the electronic calibration procedure?",
+      question: "To what extent is data transfer integrity incorporated into the electronic calibration procedure for exported water?",
       inputType: "select",
       options: [
         "Both secondary and tertiary devices",
@@ -65,13 +65,13 @@ export const VOS_WI_WE: DVSCategory = {
       scores: [10, 7, 4, 0]
     },
     {
-      question: "Is the latest electronic calibration report available for technical review?",
+      question: "Is the latest electronic calibration report for exported water available for technical review?",
       inputType: "yesno",
       weight: 5,
       scores: [10, 0]
     },
     {
-      question: "How frequently is on-site metering flow accuracy testing carried out?",
+      question: "How frequently is on-site metering flow accuracy testing carried out for exported water?",
       inputType: "select",
       options: [
         "Quarterly",
@@ -84,13 +84,13 @@ export const VOS_WI_WE: DVSCategory = {
       scores: [10, 8, 6, 4, 0]
     },
     {
-      question: "Is the latest on-site flow accuracy test report available for examination?",
+      question: "Is the latest on-site flow accuracy test report for exported water available for examination?",
       inputType: "yesno",
       weight: 5,
       scores: [10, 0]
     },
     {
-      question: "What is the total volume-weighted average from in-situ flow tests during the audit year?",
+      question: "What is the total volume-weighted average from in-situ flow tests for exported water during the audit year?",
       inputType: "select",
       options: [
         "\u2264 (\u00B12%)",
@@ -101,13 +101,13 @@ export const VOS_WI_WE: DVSCategory = {
       scores: [10, 5, 2]
     },
     {
-      question: "Have the testing and calibration procedures been reviewed to ensure compliance with the Manual for water supply system: Drink from Tap manual?",
+      question: "Have the testing and calibration procedures for exported water been reviewed to ensure compliance with the Manual for water supply system: Drink from Tap manual?",
       inputType: "yesno",
       weight: 5,
       scores: [10, 0]
     },
     {
-      question: "What is the frequency of recording finished water meter readings?",
+      question: "What is the frequency of recording exported water meter readings?",
       inputType: "select",
       options: [
         "Continuous",
@@ -120,7 +120,7 @@ export const VOS_WI_WE: DVSCategory = {
       scores: [10, 8, 5, 2, 0]
     },
     {
-      question: "How frequently is data checked for anomalous observations, missing records, or errors in meter readings?",
+      question: "How frequently is exported water data checked for anomalous observations, missing records, or errors in meter readings?",
       inputType: "select",
       options: [
         "Daily or periodically",
