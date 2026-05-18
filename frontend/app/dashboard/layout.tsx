@@ -38,7 +38,7 @@ export default function DashboardLayout({
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
-  const displayName = user?.name || user?.email?.split('@')[0] || "User"
+  const displayName = user?.full_name || user?.email?.split('@')[0] || "User"
   const initials = displayName.charAt(0).toUpperCase()
 
   return (
