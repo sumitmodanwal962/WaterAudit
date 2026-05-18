@@ -6,15 +6,16 @@ import Link from "next/link"
 import { DATA_INPUTS, VALIDATION_QUESTIONS, CATEGORY_MAP, ALL_DVS_CATEGORIES } from "@/lib/data"
 import { gradeCategory } from "@/lib/dvs/calculator"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useAudit } from "@/contexts/AuditContext"
 
 export default function DataInputPage() {
-  const [dataValues, setDataValues] = useState<Record<string, string>>({});
+  const { dataValues, updateDataValue, validationScores, updateValidationScore } = useAudit();
+  
   const [activeModalCategory, setActiveModalCategory] = useState<string | null>(null);
-  const [validationScores, setValidationScores] = useState<Record<string, number>>({});
   const [modalAnswers, setModalAnswers] = useState<Record<string, string>>({});
 
   const handleInputChange = (key: string, value: string) => {
-    setDataValues(prev => ({ ...prev, [key]: value }));
+    updateDataValue(key, value);
   };
 
   const handleValidateClick = (categoryKey: string) => {
@@ -59,7 +60,7 @@ export default function DataInputPage() {
         });
         
         const grade = gradeCategory(indices, questions);
-        setValidationScores(prev => ({ ...prev, [activeModalCategory]: grade * 10 }));
+        updateValidationScore(activeModalCategory, grade * 10);
       }
     }
     closeModal();

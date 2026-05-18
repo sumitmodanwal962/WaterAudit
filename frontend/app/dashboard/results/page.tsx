@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react"
 import { ArrowLeft, Download, Share2, TrendingUp, Droplets, PieChart, Shield, Gauge, Users, Zap } from "lucide-react"
 import Link from "next/link"
+import { useAudit } from "@/contexts/AuditContext"
+import { calculateDVS } from "@/lib/dvs/calculator"
 
 // ── Animated Gauge Component ─────────────────────────────────────
 
@@ -141,14 +143,10 @@ function WeightBar({ label, weight, grade, weighted }: {
 // ── Main Results Page ────────────────────────────────────────────
 
 export default function ResultsPage() {
-  // Demo values — in production these come from the validation answers
-  const dvsScore = 72.45;
-  const breakdown = [
-    { label: "Supply Data", weight: 0.40, grade: 0.78, weighted: 0.312 },
-    { label: "Customer Metering Data", weight: 0.30, grade: 0.65, weighted: 0.195 },
-    { label: "Authorized Consumption & Losses", weight: 0.15, grade: 0.72, weighted: 0.108 },
-    { label: "System Attributes", weight: 0.15, grade: 0.68, weighted: 0.102 },
-  ];
+  const { validationScores, dataValues } = useAudit();
+  
+  // Run the data through our AWWA dynamic volume-weighted grading engine
+  const { overall: dvsScore, breakdown } = calculateDVS(validationScores, dataValues);
 
   const kpis = {
     nrwPercentage: 34.56,

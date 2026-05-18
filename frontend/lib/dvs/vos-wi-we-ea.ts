@@ -35,13 +35,13 @@ export const VOS_WI_WE_EA: DVSCategory = {
       question: "Are flow test and electronic calibration results integrated into the VOSEA data for the water audit?",
       inputType: "select",
       options: [
+        "Results are available and analyzed, error adjustment has been made",
         "Results are available and analyzed but no error adjustment has been made",
-        "Results are available and error adjustment has been made",
-        "Results are available but not analyzed",
-        "Due to unavailability of results the error adjustments have been made"
+        "Due to unavailability of results the error adjustments have been made",
+        "Results are available but not analyzed"
       ],
       weight: 40,
-      scores: [6, 10, 1, 4]
+      scores: [10, 6, 4, 1]
     }
   ]
 };

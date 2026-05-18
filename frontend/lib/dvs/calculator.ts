@@ -25,7 +25,7 @@ export const DVS_WEIGHTS: DVSCategoryWeight[] = [
     category: "metering",
     label: "Customer Metering Data",
     weight: 0.30,
-    categoryKeys: ["CMI", "CRUC"]
+    categoryKeys: ["CMI", "CRUC", "VPC"]
   },
   {
     category: "consumption",
@@ -113,24 +113,72 @@ export function gradeCategory(
 }
 
 /**
+ * Helper to determine the dynamic weight of a category based on its input volume/cost.
+ * AWWA standard assigns higher weight to parameters with larger volumes, but strictly limits this to comparable units.
+ */
+function getDynamicWeight(key: string, dataValues: Record<string, string | number>): number {
+  // 1. Error Adjustments (Sum of their associated parent volumes in MLD)
+  if (key === "VOS_WI_WE_EA") {
+    const sum = (Number(dataValues["VOS"]) || 0) + (Number(dataValues["WI"]) || 0) + (Number(dataValues["WE"]) || 0);
+    return sum > 0 ? sum : 1;
+  }
+  if (key === "WI_WE_EA") {
+    const sum = (Number(dataValues["WI"]) || 0) + (Number(dataValues["WE"]) || 0);
+    return sum > 0 ? sum : 1;
+  }
+  if (key === "CMI") { // Customer metering inaccuracy applies to metered volume
+     const sum = (Number(dataValues["BMAC"]) || 0) + (Number(dataValues["UMAC"]) || 0);
+     return sum > 0 ? sum : 1;
+  }
+  if (key === "SDHE") { // Systematic data handling error applies to billed volumes
+     const sum = (Number(dataValues["BMAC"]) || 0) + (Number(dataValues["BUAC"]) || 0);
+     return sum > 0 ? sum : 1;
+  }
+
+  // 2. Volumetric Categories (Can be safely weighted by their own volume value as they share MLD unit)
+  const volumetricKeys = ["VOS", "WI", "WE", "BMAC", "BUAC", "UMAC", "UUAC", "UWW", "UC"];
+  if (volumetricKeys.includes(key)) {
+    const val = Number(dataValues[key]);
+    if (!isNaN(val) && val > 0) return val;
+  }
+
+  // 3. Disparate Units (Cost / System Attributes / Count / Length / Pressure)
+  // Categories like CRUC, VPC, Lm, Nc, Lp, and AOP must NOT be weighted by their raw values
+  // to avoid arbitrary mathematical skewing based on unit scales (e.g., 10000 connections vs 50 psi).
+  // We assign them a flat relative weight (1) to calculate a straight average within their sub-group.
+  return 1;
+}
+
+/**
  * Compute the overall DVS score (0–100).
  *
  * @param categoryGrades  Record<string, number>  grade (0–1) per DVS categoryKey
+ * @param dataValues      Record<string, any>     raw data inputs for dynamic weighting
  * @returns overall DVS score, plus per-group breakdown
  */
-export function calculateDVS(categoryGrades: Record<string, number>): {
+export function calculateDVS(
+  categoryGrades: Record<string, number>,
+  dataValues: Record<string, string | number> = {}
+): {
   overall: number;
   breakdown: { label: string; weight: number; grade: number; weighted: number }[];
 } {
   const breakdown = DVS_WEIGHTS.map(w => {
-    // Average grade across all sub-categories in this weight group
-    const grades = w.categoryKeys
-      .map(k => categoryGrades[k])
-      .filter(g => g !== undefined);
+    let totalSubWeight = 0;
+    let totalWeightedGrade = 0;
 
-    const avgGrade = grades.length > 0
-      ? grades.reduce((a, b) => a + b, 0) / grades.length
-      : 0;
+    w.categoryKeys.forEach(k => {
+      const rawGrade = categoryGrades[k];
+      if (rawGrade !== undefined) {
+        // Normalize the 0-10 score from the UI back to a 0.0-1.0 scale for the math engine
+        const normalizedGrade = rawGrade / 10;
+        const dynamicWeight = getDynamicWeight(k, dataValues);
+        totalSubWeight += dynamicWeight;
+        totalWeightedGrade += (normalizedGrade * dynamicWeight);
+      }
+    });
+
+    const avgGrade = totalSubWeight > 0 ? (totalWeightedGrade / totalSubWeight) : 0;
 
     return {
       label: w.label,
