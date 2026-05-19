@@ -8,6 +8,8 @@ interface AuditContextType {
   updateDataValue: (key: string, value: string) => void;
   updateValidationScore: (key: string, score: number) => void;
   resetAudit: () => void;
+  setDataValues: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  setValidationScores: React.Dispatch<React.SetStateAction<Record<string, number>>>;
 }
 
 const AuditContext = createContext<AuditContextType | undefined>(undefined);
@@ -39,6 +41,8 @@ export function AuditProvider({ children }: { children: React.ReactNode }) {
         updateDataValue,
         updateValidationScore,
         resetAudit,
+        setDataValues,
+        setValidationScores,
       }}
     >
       {children}

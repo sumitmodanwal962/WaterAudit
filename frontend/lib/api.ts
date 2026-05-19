@@ -19,8 +19,12 @@ async function apiFetch<T>(path: string, options: FetchOptions = {}): Promise<T>
     if (token) headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${API_URL}${path}`, { ...rest, headers });
-
+  let res: Response;
+  try {
+    res = await fetch(`${API_URL}${path}`, { ...rest, headers });
+  } catch (error: any) {
+    throw new Error(`Network error or API is unreachable: ${error.message}`);
+  }
   if (!res.ok) {
     let detail = `Request failed: ${res.status}`;
     try {

@@ -8,14 +8,15 @@ import { DATA_INPUTS, VALIDATION_QUESTIONS, CATEGORY_MAP, ALL_DVS_CATEGORIES } f
 import { gradeCategory } from "@/lib/dvs/calculator"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { getDataInput, saveDataInput } from "@/lib/api"
+import { useAudit } from "@/contexts/AuditContext"
 
 export default function DataInputPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const projectId = searchParams.get("projectId") ? Number(searchParams.get("projectId")) : null;
 
-  const [dataValues, setDataValues] = useState<Record<string, string>>({});
-  const [validationScores, setValidationScores] = useState<Record<string, number>>({});
+  const { dataValues, setDataValues, validationScores, setValidationScores, updateDataValue } = useAudit();
+
   const [activeModalCategory, setActiveModalCategory] = useState<string | null>(null);
   const [modalAnswers, setModalAnswers] = useState<Record<string, string>>({});
 
@@ -67,7 +68,7 @@ export default function DataInputPage() {
   };
 
   const handleInputChange = (key: string, value: string) => {
-    setDataValues(prev => ({ ...prev, [key]: value }));
+    updateDataValue(key, value);
   };
 
   const handleValidateClick = (categoryKey: string) => {
