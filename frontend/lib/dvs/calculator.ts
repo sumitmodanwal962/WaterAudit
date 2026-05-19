@@ -81,7 +81,16 @@ export function gradeCategory(
       if (answerIdx === null || answerIdx === undefined) continue;
 
       const w = q.weight !== undefined ? q.weight : 1;
-      
+
+      let optionScore = 0;
+      if (q.scores && q.scores.length > answerIdx) {
+        optionScore = q.scores[answerIdx];
+      } else {
+        const maxIdx = (q.options?.length || 2) - 1;
+        optionScore = maxIdx > 0 ? (answerIdx / maxIdx) * 10 : 0;
+      }
+      const w = q.weight !== undefined ? q.weight : 1;
+
       let optionScore = 0;
       if (q.scores && q.scores.length > answerIdx) {
         optionScore = q.scores[answerIdx];
@@ -127,12 +136,12 @@ function getDynamicWeight(key: string, dataValues: Record<string, string | numbe
     return sum > 0 ? sum : 1;
   }
   if (key === "CMI") { // Customer metering inaccuracy applies to metered volume
-     const sum = (Number(dataValues["BMAC"]) || 0) + (Number(dataValues["UMAC"]) || 0);
-     return sum > 0 ? sum : 1;
+    const sum = (Number(dataValues["BMAC"]) || 0) + (Number(dataValues["UMAC"]) || 0);
+    return sum > 0 ? sum : 1;
   }
   if (key === "SDHE") { // Systematic data handling error applies to billed volumes
-     const sum = (Number(dataValues["BMAC"]) || 0) + (Number(dataValues["BUAC"]) || 0);
-     return sum > 0 ? sum : 1;
+    const sum = (Number(dataValues["BMAC"]) || 0) + (Number(dataValues["BUAC"]) || 0);
+    return sum > 0 ? sum : 1;
   }
 
   // 2. Volumetric Categories (Can be safely weighted by their own volume value as they share MLD unit)
@@ -235,8 +244,8 @@ export function calculateKPIs(data: Record<string, number>): Omit<KPIResults, 'd
   // CARL = TotalWaterLosses - ApparentLosses
   const totalWaterLosses = data["TotalWaterLosses"] || 0;
   const apparentLosses = data["ApparentLosses"] || 0;
-  const carlDaily = totalWaterLosses - apparentLosses; // in MLD
-  const carlAnnualLitres = carlDaily * 1000000 * 365;
+  const carlAnnualLitres = (totalWaterLosses - apparentLosses) * 1000000; // in MLD
+
 
   // 6. UARL (Unavoidable Annual Real Losses)
   // Lc = (Nc * Lp * 3.048) / 10000
