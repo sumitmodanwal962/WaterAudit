@@ -1,12 +1,13 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ArrowLeft, Download, Share2, TrendingUp, Droplets, PieChart, Shield, Gauge, Users, Zap, ClipboardList, Loader2 } from "lucide-react"
+import { ArrowLeft, Download, Share2, TrendingUp, Droplets, PieChart, Shield, Gauge, Users, Zap, ClipboardList, Loader2, Activity, CheckCircle, Wrench, DollarSign } from "lucide-react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { getDataInput } from "@/lib/api"
 import { ALL_DVS_CATEGORIES, CATEGORY_MAP } from "@/lib/dvs"
 import { calculateDVS, calculateKPIs } from "@/lib/dvs/calculator"
+import { useAudit } from "@/contexts/AuditContext"
 
 // ── Animated Gauge Component ─────────────────────────────────────
 
@@ -85,7 +86,7 @@ function GaugeChart({ value, max, label, icon: Icon, color, suffix = "" }: {
         {/* Center value */}
         <div className="absolute inset-0 flex flex-col items-center justify-end pb-1">
           <span className="text-3xl font-extrabold tracking-tight" style={{ color: colors.text }}>
-            {animatedValue.toFixed(2)}
+            {animatedValue >= 1000 ? Math.round(animatedValue).toLocaleString() : animatedValue.toFixed(2)}
           </span>
           {suffix && <span className="text-xs font-medium text-slate-400 -mt-0.5">{suffix}</span>}
         </div>
@@ -156,9 +157,11 @@ export default function ResultsPage() {
     const searchParams = useSearchParams();
     const projectId = searchParams.get("projectId") ? Number(searchParams.get("projectId")) : null;
 
+    const { dataValues: contextDataValues, validationScores: contextValidationScores, setDataValues: setContextDataValues, setValidationScores: setContextValidationScores } = useAudit();
+
     const [loading, setLoading] = useState(true);
-    const [dataValues, setDataValues] = useState<Record<string, string>>({});
-    const [validationScores, setValidationScores] = useState<Record<string, number>>({});
+    const [dataValues, setDataValues] = useState<Record<string, string>>(contextDataValues);
+    const [validationScores, setValidationScores] = useState<Record<string, number>>(contextValidationScores);
 
     // Real scores based on data
     const [dvsScore, setDvsScore] = useState(0);
@@ -172,10 +175,32 @@ export default function ResultsPage() {
         }
 
         try {
+          // If we already have data in context, we don't strictly need to fetch, but we can to ensure it's up to date.
+          // To make it offline/session resilient, use context first.
+          if (Object.keys(contextDataValues).length > 0 || Object.keys(contextValidationScores).length > 0) {
+            setDataValues(contextDataValues);
+            setValidationScores(contextValidationScores);
+            
+            const numericData = Object.keys(contextDataValues || {}).reduce((acc, key) => {
+              acc[key] = Number(contextDataValues![key]) || 0;
+              return acc;
+            }, {} as Record<string, number>);
+
+            const { overall, breakdown: newBreakdown } = calculateDVS(contextValidationScores || {}, numericData);
+            setDvsScore(overall);
+            setBreakdown(newBreakdown);
+            setLoading(false);
+            return;
+          }
+
           const progress = await getDataInput(projectId);
           if (progress) {
             setDataValues(progress.data_values || {});
             setValidationScores(progress.validation_scores || {});
+            
+            // Also sync it to context so it's available globally
+            setContextDataValues(progress.data_values || {});
+            setContextValidationScores(progress.validation_scores || {});
 
             // Calculate real DVS score
             const numericData = Object.keys(progress.data_values || {}).reduce((acc, key) => {
@@ -189,6 +214,9 @@ export default function ResultsPage() {
           }
         } catch (error) {
           console.error("Failed to load audit results:", error);
+          // Fallback to empty calculations so the UI still loads
+          setDvsScore(0);
+          setBreakdown([]);
         } finally {
           setLoading(false);
         }
@@ -214,12 +242,12 @@ export default function ResultsPage() {
     }
 
     // Derived Indicators for the end of the page
-    const calcIndicator = (formula: () => number) => {
+    const calcIndicatorNum = (formula: () => number) => {
       try {
         const val = formula();
-        return isFinite(val) ? val.toFixed(2) : "0.00";
+        return isFinite(val) ? val : 0;
       } catch (e) {
-        return "0.00";
+        return 0;
       }
     };
 
@@ -231,54 +259,101 @@ export default function ResultsPage() {
 
     const realKpis = calculateKPIs(numericData);
 
-    const indicators = [
+    const indicatorsData = [
       {
-        label: "Non-Revenue Water (NRW %)",
-        value: realKpis.nrwPercentage.toFixed(2) + " %"
+        label: "Non-Revenue Water",
+        value: realKpis.nrwPercentage,
+        max: 100,
+        icon: Droplets,
+        color: "auto",
+        suffix: "%"
       },
       {
-        label: "Revenue Water Ratio (RWR %)",
-        value: realKpis.revenueWaterRatio.toFixed(2) + " %"
+        label: "Revenue Water Ratio",
+        value: realKpis.revenueWaterRatio,
+        max: 100,
+        icon: TrendingUp,
+        color: "auto",
+        suffix: "%"
       },
       {
-        label: "Infrastructure Leakage Index (ILI)",
-        value: realKpis.infrastructureLeakageIndex.toFixed(2)
+        label: "Infrastructure Leakage",
+        value: realKpis.infrastructureLeakageIndex,
+        max: 10,
+        icon: Gauge,
+        color: "auto"
       },
       {
-        label: "Current Annual Real Losses (CARL - Litres)",
-        value: realKpis.carl.toLocaleString()
+        label: "CARL",
+        value: realKpis.carl,
+        max: Math.max(realKpis.carl * 1.2, 1000),
+        icon: Zap,
+        color: "#0284c7",
+        suffix: "L"
       },
       {
-        label: "Unavoidable Annual Real Losses (UARL - Litres)",
-        value: realKpis.uarl.toLocaleString()
+        label: "UARL",
+        value: realKpis.uarl,
+        max: Math.max(realKpis.uarl * 1.2, 1000),
+        icon: Activity,
+        color: "#0284c7",
+        suffix: "L"
       },
       {
-        label: "Coverage of water supply (%)",
-        value: calcIndicator(() => (Number(dataValues.HouseholdsWithConnection || 0) * 100) / Number(dataValues.TotalHouseholds || 1))
+        label: "Supply Coverage",
+        value: calcIndicatorNum(() => (Number(dataValues.HouseholdsWithConnection || 0) * 100) / Number(dataValues.TotalHouseholds || 1)),
+        max: 100,
+        icon: Users,
+        color: "auto",
+        suffix: "%"
       },
       {
-        label: "Per Capita Water Supplied (Liters/Month)",
-        value: calcIndicator(() => Number(dataValues.WaterSupplied || 0) / (Number(dataValues.DaysInMonth || 1) * Number(dataValues.Population || 1)))
+        label: "Per Capita Supply",
+        value: calcIndicatorNum(() => Number(dataValues.WaterSupplied || 0) / (Number(dataValues.DaysInMonth || 1) * Number(dataValues.Population || 1))),
+        max: 200,
+        icon: Droplets,
+        color: "#0284c7",
+        suffix: "LPCD"
       },
       {
-        label: "Extent of metering of water connections (%)",
-        value: calcIndicator(() => (Number(dataValues.MeteredDirectConnections || 0) + Number(dataValues.MeteredPublicStandposts || 0)) * 100 / (Number(dataValues.TotalDirectConnections || 0) + Number(dataValues.TotalMeteredDirectConnections || 1)))
+        label: "Metering Extent",
+        value: calcIndicatorNum(() => (Number(dataValues.MeteredDirectConnections || 0) + Number(dataValues.MeteredPublicStandposts || 0)) * 100 / (Number(dataValues.TotalDirectConnections || 0) + Number(dataValues.TotalMeteredDirectConnections || 1))),
+        max: 100,
+        icon: Gauge,
+        color: "auto",
+        suffix: "%"
       },
       {
-        label: "Quantity of Water Supplied (%)",
-        value: calcIndicator(() => (Number(dataValues.WaterQualitySamples || 0) * 100) / Number(dataValues.TotalComplaints || 1))
+        label: "Quantity Supplied",
+        value: calcIndicatorNum(() => (Number(dataValues.WaterQualitySamples || 0) * 100) / Number(dataValues.TotalComplaints || 1)),
+        max: 100,
+        icon: CheckCircle,
+        color: "auto",
+        suffix: "%"
       },
       {
-        label: "Efficiency in redressal of customer complaints (%)",
-        value: calcIndicator(() => Number(dataValues.ComplaintsRedressed || 0) * 100 / Number(dataValues.TotalComplaints || 1))
+        label: "Complaint Redressal",
+        value: calcIndicatorNum(() => Number(dataValues.ComplaintsRedressed || 0) * 100 / Number(dataValues.TotalComplaints || 1)),
+        max: 100,
+        icon: Wrench,
+        color: "auto",
+        suffix: "%"
       },
       {
-        label: "Cost Recovery in water supply services (%)",
-        value: calcIndicator(() => Number(dataValues.AnnualRevenues || 0) * 100 / Number(dataValues.AnnualExpenses || 1))
+        label: "Cost Recovery",
+        value: calcIndicatorNum(() => Number(dataValues.AnnualRevenues || 0) * 100 / Number(dataValues.AnnualExpenses || 1)),
+        max: 100,
+        icon: DollarSign,
+        color: "auto",
+        suffix: "%"
       },
       {
-        label: "Efficiency in the collection of water related charges (%)",
-        value: calcIndicator(() => Number(dataValues.CurrentRevenuesCollected || 0) * 100 / Number(dataValues.TotalRevenuesBilled || 1))
+        label: "Collection Efficiency",
+        value: calcIndicatorNum(() => Number(dataValues.CurrentRevenuesCollected || 0) * 100 / Number(dataValues.TotalRevenuesBilled || 1)),
+        max: 100,
+        icon: TrendingUp,
+        color: "auto",
+        suffix: "%"
       },
     ];
 
@@ -425,12 +500,17 @@ export default function ResultsPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-12">
-            {indicators.map((indicator, idx) => (
-              <div key={idx} className="flex items-center justify-between py-3 border-b border-slate-50 last:border-0">
-                <span className="text-sm font-medium text-slate-600 pr-4">{indicator.label}</span>
-                <span className="text-lg font-bold text-[#0f172a] whitespace-nowrap">{indicator.value}</span>
-              </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {indicatorsData.map((indicator, idx) => (
+              <GaugeChart
+                key={idx}
+                value={indicator.value}
+                max={indicator.max}
+                label={indicator.label}
+                icon={indicator.icon}
+                color={indicator.color}
+                suffix={indicator.suffix}
+              />
             ))}
           </div>
         </div>
