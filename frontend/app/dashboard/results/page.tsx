@@ -6,7 +6,7 @@ import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { getDataInput } from "@/lib/api"
 import { ALL_DVS_CATEGORIES, CATEGORY_MAP } from "@/lib/dvs"
-import { gradeCategory, calculateKPIs } from "@/lib/dvs/calculator"
+import { calculateDVS, calculateKPIs } from "@/lib/dvs/calculator"
 
 // ── Animated Gauge Component ─────────────────────────────────────
 
@@ -144,37 +144,15 @@ function WeightBar({ label, weight, grade, weighted }: {
 
 // ── Main Results Page ────────────────────────────────────────────
 
+const getDVSGrade = (score: number) => {
+  if (score >= 90) return { label: "Excellent", color: "#16a34a", bg: "#dcfce7" };
+  if (score >= 75) return { label: "Good", color: "#2563eb", bg: "#dbeafe" };
+  if (score >= 50) return { label: "Moderate", color: "#d97706", bg: "#fef3c7" };
+  if (score >= 25) return { label: "Low", color: "#ea580c", bg: "#ffedd5" };
+  return { label: "Very Low", color: "#dc2626", bg: "#fee2e2" };
+};
+
 export default function ResultsPage() {
-  // Demo values — in production these come from the validation answers
-  const dvsScore = 72.45;
-  const breakdown = [
-    { label: "Supply Data", weight: 0.40, grade: 0.78, weighted: 0.312 },
-    { label: "Customer Metering Data", weight: 0.30, grade: 0.65, weighted: 0.195 },
-    { label: "Authorized Consumption & Losses", weight: 0.15, grade: 0.72, weighted: 0.108 },
-    { label: "System Attributes", weight: 0.15, grade: 0.68, weighted: 0.102 },
-  ];
-
-  const kpis = {
-    nrwPercentage: 34.56,
-    revenueWaterRatio: 65.44,
-    economicalLeakageLevel: 1.23,
-    infrastructureLeakageIndex: 4.87,
-    coverageOfConnections: 78.90,
-    perCapitaWaterSupply: 112.50,
-  };
-
-  // DVS grade label
-  const getDVSGrade = (score: number) => {
-    if (score >= 90) return { label: "Excellent", color: "#16a34a", bg: "#dcfce7" };
-    if (score >= 75) return { label: "Good", color: "#2563eb", bg: "#dbeafe" };
-    if (score >= 50) return { label: "Moderate", color: "#d97706", bg: "#fef3c7" };
-    if (score >= 25) return { label: "Low", color: "#ea580c", bg: "#ffedd5" };
-    return { label: "Very Low", color: "#dc2626", bg: "#fee2e2" };
-  };
-
-  // ── Main Results Page ────────────────────────────────────────────
-
-  export default function ResultsPage() {
     const searchParams = useSearchParams();
     const projectId = searchParams.get("projectId") ? Number(searchParams.get("projectId")) : null;
 
@@ -200,28 +178,13 @@ export default function ResultsPage() {
             setValidationScores(progress.validation_scores || {});
 
             // Calculate real DVS score
-            let totalWeightedGrade = 0;
-            let totalWeight = 0;
+            const numericData = Object.keys(progress.data_values || {}).reduce((acc, key) => {
+              acc[key] = Number(progress.data_values![key]) || 0;
+              return acc;
+            }, {} as Record<string, number>);
 
-            const newBreakdown = ALL_DVS_CATEGORIES.map(category => {
-              const selectedIndices = category.validationQuestions.map(q =>
-                progress.validation_scores?.[q.id] !== undefined ? progress.validation_scores[q.id] : null
-              );
-
-              const grade = gradeCategory(selectedIndices, category.validationQuestions);
-              const weight = 1 / ALL_DVS_CATEGORIES.length;
-              totalWeightedGrade += grade * weight;
-              totalWeight += weight;
-
-              return {
-                label: category.displayName,
-                weight: weight,
-                grade: grade,
-                weighted: grade * weight
-              };
-            });
-
-            setDvsScore((totalWeightedGrade / totalWeight) * 100);
+            const { overall, breakdown: newBreakdown } = calculateDVS(progress.validation_scores || {}, numericData);
+            setDvsScore(overall);
             setBreakdown(newBreakdown);
           }
         } catch (error) {

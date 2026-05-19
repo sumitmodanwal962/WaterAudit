@@ -89,15 +89,6 @@ export function gradeCategory(
         const maxIdx = (q.options?.length || 2) - 1;
         optionScore = maxIdx > 0 ? (answerIdx / maxIdx) * 10 : 0;
       }
-      const w = q.weight !== undefined ? q.weight : 1;
-
-      let optionScore = 0;
-      if (q.scores && q.scores.length > answerIdx) {
-        optionScore = q.scores[answerIdx];
-      } else {
-        const maxIdx = (q.options?.length || 2) - 1;
-        optionScore = maxIdx > 0 ? (answerIdx / maxIdx) * 10 : 0;
-      }
 
       totalWeightedScore += w * optionScore;
       totalWeight += w;
