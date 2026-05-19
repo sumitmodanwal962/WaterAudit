@@ -9,15 +9,6 @@ export const UC: DVSCategory = {
   ],
   validationQuestions: [
     {
-      question: "What is the default status shown in the worksheet for this data entry?",
-      inputType: "select",
-      options: [
-        "The default value is applied because a custom option was selected but no corresponding value was entered"
-      ],
-      weight: 0,
-      scores: [1]
-    },
-    {
       question: "How was the information or input for unauthorized consumption collected or derived?",
       inputType: "select",
       options: [

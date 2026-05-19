@@ -9,15 +9,6 @@ export const SDHE: DVSCategory = {
   ],
   validationQuestions: [
     {
-      question: "What is the default status shown in the worksheet for this data entry?",
-      inputType: "select",
-      options: [
-        "Default is applied as the custom field was chosen without entering a value"
-      ],
-      weight: 0,
-      scores: [10]
-    },
-    {
       question: "How was the input data generated or calculated?",
       inputType: "select",
       options: [

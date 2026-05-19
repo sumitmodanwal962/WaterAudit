@@ -9,15 +9,6 @@ export const UUAC: DVSCategory = {
   ],
   validationQuestions: [
     {
-      question: "What is the default status shown in the worksheet for unbilled unmetered use?",
-      inputType: "select",
-      options: [
-        "A system-specific volume has been provided"
-      ],
-      weight: 0,
-      scores: [10]
-    },
-    {
       question: "To what extent does the utility have clarity on unbilled unmetered water use?",
       inputType: "select",
       options: [
