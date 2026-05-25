@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { ArrowLeft, Download, Share2, TrendingUp, Droplets, PieChart, Shield, Gauge, Users, Zap, ClipboardList, Loader2, Activity, CheckCircle, Wrench, DollarSign } from "lucide-react"
+import { useState, useEffect, Suspense } from "react"
+import { ArrowLeft, Download, Share2, TrendingUp, Droplets, PieChart, Shield, Gauge, Users, Zap, ClipboardList, Loader2, Activity, CheckCircle, Wrench, DollarSign, FileSpreadsheet, X, AlertCircle, CalendarRange, Clock } from "lucide-react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { getDataInput } from "@/lib/api"
@@ -26,8 +26,8 @@ function GaugeChart({ value, max, label, icon: Icon, color, suffix = "" }: {
     return () => clearTimeout(timeout);
   }, [value]);
 
-  const percentage = Math.min((animatedValue / max) * 100, 100);
-  const radius = 80;
+  const percentage = Math.max(0, Math.min((animatedValue / max) * 100, 100));
+  const radius = 90;
   const circumference = Math.PI * radius;
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
@@ -50,7 +50,7 @@ function GaugeChart({ value, max, label, icon: Icon, color, suffix = "" }: {
         <svg width="180" height="100" viewBox="0 0 200 110" className="drop-shadow-sm">
           {/* Background track */}
           <path
-            d="M 10 100 A 80 80 0 0 1 190 100"
+            d="M 10 100 A 90 90 0 0 1 190 100"
             fill="none"
             stroke="#e2e8f0"
             strokeWidth="14"
@@ -58,7 +58,7 @@ function GaugeChart({ value, max, label, icon: Icon, color, suffix = "" }: {
           />
           {/* Animated fill */}
           <path
-            d="M 10 100 A 80 80 0 0 1 190 100"
+            d="M 10 100 A 90 90 0 0 1 190 100"
             fill="none"
             stroke={colors.stroke}
             strokeWidth="14"
@@ -153,7 +153,429 @@ const getDVSGrade = (score: number) => {
   return { label: "Very Low", color: "#dc2626", bg: "#fee2e2" };
 };
 
-export default function ResultsPage() {
+interface DvsZoneData {
+  id: string;
+  range: string;
+  zone: string;
+  frequency: string;
+  interpretation: string;
+  issues: string[];
+  interventions: string[];
+  color: string;
+  bgColor: string;
+  borderColor: string;
+}
+
+const DVS_RANGES: DvsZoneData[] = [
+  {
+    id: "critical",
+    range: "< 20",
+    zone: "Critical Reliability Zone",
+    frequency: "Continuous / Complete Infrastructure Renewal",
+    interpretation: "Extremely poor data: system cannot be trusted",
+    issues: [
+      "Utility data cannot be trusted.",
+      "Source flow, bulk metering, customer metering, billing, or pressure data missing/inaccurate.",
+      "KPIs (NRW, ILI, RWR, ELL) are unreliable."
+    ],
+    interventions: [
+      "Immediate reinstallation or repair of all production/bulk meters.",
+      "Replace old/non-functioning customer meters (start with ≥60% consumers).",
+      "Conduct full pipeline condition assessment.",
+      "Rebuild basic GIS, DMA maps, and connection inventories.",
+      "Begin full infrastructure renewal planning cycle.",
+      "Implement basic data capture and validation workflows."
+    ],
+    color: "#ef4444",
+    bgColor: "rgba(239, 68, 68, 0.05)",
+    borderColor: "rgba(239, 68, 68, 0.2)",
+  },
+  {
+    id: "low",
+    range: "20–50",
+    zone: "Low Reliability Zone",
+    frequency: "Quarterly Water Audit",
+    interpretation: "Low reliability: aggressive monitoring needed",
+    issues: [
+      "Incomplete customer metering; limited pressure data; billing gaps.",
+      "Real losses estimation is unreliable.",
+      "High dependence on assumed values."
+    ],
+    interventions: [
+      "Conduct a targeted production meter calibration program.",
+      "Perform sample-area studies: leak survey, unauthorized consumption survey, sample customer meter testing.",
+      "DMA creation for systematic monitoring.",
+      "Improve SCADA data logging consistency.",
+      "Improve billing accuracy & recover missing consumption records.",
+      "Strengthen asset records: pipe materials, ages, valve locations."
+    ],
+    color: "#f97316",
+    bgColor: "rgba(249, 115, 22, 0.05)",
+    borderColor: "rgba(249, 115, 22, 0.2)",
+  },
+  {
+    id: "moderate",
+    range: "50–80",
+    zone: "Moderate Reliability Zone",
+    frequency: "Every 6 Months",
+    interpretation: "Moderate reliability: semi-annual audits recommended",
+    issues: [
+      "Most core data streams exist but have moderate uncertainty.",
+      "Real losses can be estimated but require refinement.",
+      "Apparent losses influenced by meter accuracy and unmetered consumption."
+    ],
+    interventions: [
+      "Establish formal, documented data collection SOPs.",
+      "Upgrade customer meter accuracy (testing & replacement cycle).",
+      "Implement night-flow analysis in DMAs for real-loss estimation.",
+      "Begin pressure management pilots.",
+      "Improve accuracy of connection counts & billed consumption.",
+      "Plan 5 to 7-year meter replacement cycle.",
+      "Implement water balance validation each audit period."
+    ],
+    color: "#f59e0b",
+    bgColor: "rgba(245, 158, 11, 0.05)",
+    borderColor: "rgba(245, 158, 11, 0.2)",
+  },
+  {
+    id: "good",
+    range: "80–90",
+    zone: "Good Reliability Zone",
+    frequency: "Annual Water Audit",
+    interpretation: "Good reliability: yearly review is adequate",
+    issues: [
+      "Good-quality source, consumption, and pressure data.",
+      "NRW, RWR, ELL, and ILI indicators trustworthy."
+    ],
+    interventions: [
+      "Institutionalize annual water audit procedure.",
+      "Expand active leakage control using AWWA-recommended protocols: acoustic loggers, flow/pressure monitoring, system-wide leakage scanning.",
+      "Establish medium-term (3–5 year) performance improvement plan.",
+      "Enhance GIS and customer database accuracy.",
+      "Prioritize pipeline rehabilitation based on break history and leakage hotspots.",
+      "Improve billing & collection efficiency where <98%."
+    ],
+    color: "#2563eb",
+    bgColor: "rgba(37, 99, 235, 0.05)",
+    borderColor: "rgba(37, 99, 235, 0.2)",
+  },
+  {
+    id: "excellent",
+    range: "> 90",
+    zone: "Excellent / Best-in-Class Reliability Zone",
+    frequency: "Biannual (Once Every 2 Years)",
+    interpretation: "Excellent reliability: data can support longer audit cycle",
+    issues: [
+      "Highly reliable, clean, consistent data.",
+      "Audit results can be used confidently for strategic planning."
+    ],
+    interventions: [
+      "Implement predictive leakage management (SCADA + analytics).",
+      "Expand AMI/AMR coverage to 100%.",
+      "Continue systematic pressure management optimization.",
+      "Use KPIs (NRW, ILI, RWR, ELL) for performance benchmarking.",
+      "Conduct real-loss target review annually.",
+      "Implement long-term (10+ year) infrastructure renewal program."
+    ],
+    color: "#16a34a",
+    bgColor: "rgba(22, 163, 74, 0.05)",
+    borderColor: "rgba(22, 163, 74, 0.2)",
+  }
+];
+
+const getDvsZoneData = (score: number): DvsZoneData => {
+  if (score < 20) return DVS_RANGES[0];
+  if (score <= 50) return DVS_RANGES[1];
+  if (score <= 80) return DVS_RANGES[2];
+  if (score <= 90) return DVS_RANGES[3];
+  return DVS_RANGES[4];
+};
+
+const TIMELINE_STEPS = [
+  {
+    period: "Short-Term",
+    duration: "0 to 2 years",
+    color: "#0284c7",
+    items: [
+      "Speed and quality of repairs (reported & unreported leaks).",
+      "Acoustic leak detection and rapid repair.",
+      "Implement RWH, greywater reuse, and sewer tax reforms."
+    ]
+  },
+  {
+    period: "Medium-Term",
+    duration: "3 to 5 years",
+    color: "#4f46e5",
+    items: [
+      "Pressure Management: reduce pressure to 15–21 m, installation of PRVs, SCADA-linked pressure zoning.",
+      "100% smart metering with calibration schedule."
+    ]
+  },
+  {
+    period: "Long-Term",
+    duration: "6+ years",
+    color: "#0d9488",
+    items: [
+      "Infrastructure renewal programs.",
+      "New billing systems, AMR/AMI rollout.",
+      "Comprehensive leakage reduction projects."
+    ]
+  }
+];
+
+function RecommendationModal({ dvsScore, onClose }: { dvsScore: number; onClose: () => void }) {
+  const currentZone = getDvsZoneData(dvsScore);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4 sm:p-6 overflow-y-auto animate-in fade-in duration-200">
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-5xl my-auto animate-in fade-in zoom-in-95 duration-300 overflow-hidden flex flex-col max-h-[92vh] border border-slate-100">
+        {/* Modal Header */}
+        <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur-sm z-20">
+          <div className="flex items-center gap-3.5">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-50 text-[#0284c7] shadow-inner">
+              <FileSpreadsheet className="h-5.5 w-5.5" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-black text-slate-800 tracking-tight">Recommended Action Plan Sheet</h2>
+              <p className="text-xs text-slate-500 font-medium">Diagnostic roadmap & governance protocols based on DVS score</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="h-9 w-9 flex items-center justify-center rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition-all border border-slate-200 shadow-sm cursor-pointer"
+            aria-label="Close"
+          >
+            <X className="h-4.5 w-4.5" />
+          </button>
+        </div>
+
+        {/* Modal Body */}
+        <div className="p-6 sm:p-8 overflow-y-auto space-y-8 bg-slate-50/50 flex-1">
+          {/* Current Status Hero Banner */}
+          <div
+            className="rounded-3xl border p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 transition-all shadow-sm"
+            style={{
+              borderColor: currentZone.borderColor,
+              backgroundColor: currentZone.bgColor,
+              boxShadow: `0 4px 20px -2px ${currentZone.color}08`
+            }}
+          >
+            <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-black tracking-widest uppercase px-3 py-1 rounded-full text-white shadow-sm" style={{ backgroundColor: currentZone.color }}>
+                  Current Zone
+                </span>
+                <span className="text-lg font-extrabold text-slate-800">{currentZone.zone}</span>
+              </div>
+              <h3 className="text-2xl font-black tracking-tight text-slate-900">
+                Data Validity Score: <span style={{ color: currentZone.color }}>{dvsScore.toFixed(2)} / 100</span>
+              </h3>
+              <p className="text-sm font-semibold text-slate-600 italic">
+                &ldquo;{currentZone.interpretation}&rdquo;
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-1 items-start md:items-end bg-white px-5 py-4 rounded-2xl border border-slate-200/60 shadow-sm shrink-0">
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                <Clock className="h-3.5 w-3.5 text-slate-400" />
+                Audit Frequency
+              </div>
+              <span className="text-lg font-black" style={{ color: currentZone.color }}>
+                {currentZone.frequency}
+              </span>
+            </div>
+          </div>
+
+          {/* DVS-Based Audit Frequency Table */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2.5">
+              <div className="h-2 w-2 rounded-full bg-[#0284c7]" />
+              <h4 className="text-base font-extrabold text-slate-800 uppercase tracking-wider">DVS-Based Audit Frequency Table</h4>
+            </div>
+            <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-slate-50 border-b border-slate-200 text-xs font-bold uppercase text-slate-500 tracking-wider">
+                      <th className="px-6 py-4">DVS Range</th>
+                      <th className="px-6 py-4">Audit Frequency</th>
+                      <th className="px-6 py-4">Interpretation</th>
+                      <th className="px-6 py-4 text-center">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 text-sm">
+                    {DVS_RANGES.map((row) => {
+                      const isActive = row.id === currentZone.id;
+                      return (
+                        <tr
+                          key={row.id}
+                          className={`transition-all ${
+                            isActive
+                              ? "font-semibold bg-slate-50/50"
+                              : "opacity-60"
+                          }`}
+                          style={
+                            isActive
+                              ? {
+                                  boxShadow: `inset 4px 0 0 ${row.color}`,
+                                }
+                              : {}
+                          }
+                        >
+                          <td className="px-6 py-4.5 whitespace-nowrap">
+                            <span
+                              className={`inline-flex px-2.5 py-1 rounded-lg text-xs font-bold`}
+                              style={{
+                                color: row.color,
+                                backgroundColor: `${row.color}15`,
+                              }}
+                            >
+                              DVS {row.range}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4.5 font-bold text-slate-800">
+                            {row.frequency}
+                          </td>
+                          <td className="px-6 py-4.5 text-slate-500 max-w-xs sm:max-w-sm truncate md:whitespace-normal">
+                            {row.interpretation}
+                          </td>
+                          <td className="px-6 py-4.5 text-center whitespace-nowrap">
+                            {isActive ? (
+                              <span
+                                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold text-white shadow-sm"
+                                style={{ backgroundColor: row.color }}
+                              >
+                                Active
+                              </span>
+                            ) : (
+                              <span className="text-xs font-semibold text-slate-400">
+                                &mdash;
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          {/* Diagnostic Breakdown & Recommendations Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* System Issues Card */}
+            <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm flex flex-col space-y-4">
+              <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-50 text-rose-500 shadow-inner">
+                  <AlertCircle className="h-4.5 w-4.5" />
+                </div>
+                <div>
+                  <h4 className="text-base font-extrabold text-slate-800 tracking-tight">Range-Specific System Issues</h4>
+                  <p className="text-xxs text-slate-400 font-bold uppercase tracking-wider">Identified data reliability bottlenecks</p>
+                </div>
+              </div>
+              <ul className="space-y-3 flex-1">
+                {currentZone.issues.map((issue, idx) => (
+                  <li key={idx} className="flex gap-3 text-sm text-slate-600 font-medium">
+                    <span className="h-2 w-2 rounded-full bg-rose-400 mt-2 shrink-0" />
+                    <span>{issue}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Interventions Card */}
+            <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm flex flex-col space-y-4">
+              <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 shadow-inner">
+                  <CheckCircle className="h-4.5 w-4.5" />
+                </div>
+                <div>
+                  <h4 className="text-base font-extrabold text-slate-800 tracking-tight">Recommended Interventions</h4>
+                  <p className="text-xxs text-slate-400 font-bold uppercase tracking-wider">Key steps to improve data quality</p>
+                </div>
+              </div>
+              <ul className="space-y-3.5 flex-1">
+                {currentZone.interventions.map((intervention, idx) => (
+                  <li key={idx} className="flex gap-3.5 text-sm text-slate-600 font-medium">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100 shrink-0">
+                      <CheckCircle className="h-3 w-3" />
+                    </div>
+                    <span>{intervention}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          {/* Action Roadmap Timeline */}
+          <div className="space-y-5 bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+            <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 shadow-inner">
+                <CalendarRange className="h-4.5 w-4.5" />
+              </div>
+              <div>
+                <h4 className="text-base font-extrabold text-slate-800 tracking-tight">Long-Term Improvement Roadmap</h4>
+                <p className="text-xxs text-slate-400 font-bold uppercase tracking-wider">Strategic timeline for pipeline & meter systems</p>
+              </div>
+            </div>
+
+            <div className="relative pl-6 sm:pl-8 border-l-2 border-slate-200/80 ml-3 space-y-8 pt-4">
+              {TIMELINE_STEPS.map((step, idx) => (
+                <div key={idx} className="relative group">
+                  {/* Timeline Indicator Dot */}
+                  <div
+                    className="absolute -left-10 sm:-left-12 top-0 flex h-8 w-8 items-center justify-center rounded-full bg-white border-2 shadow-sm transition-all group-hover:scale-110 animate-in fade-in duration-350"
+                    style={{ borderColor: step.color }}
+                  >
+                    <div className="h-3 w-3 rounded-full" style={{ backgroundColor: step.color }} />
+                  </div>
+
+                  {/* Step Content */}
+                  <div className="space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                      <h5 className="text-base font-extrabold text-slate-800">{step.period}</h5>
+                      <span
+                        className="inline-flex px-2.5 py-0.5 rounded-full text-xxs font-bold text-white shadow-sm w-fit"
+                        style={{ backgroundColor: step.color }}
+                      >
+                        {step.duration}
+                      </span>
+                    </div>
+
+                    <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {step.items.map((item, itemIdx) => (
+                        <li
+                          key={itemIdx}
+                          className="bg-slate-50/50 rounded-2xl border border-slate-200/50 p-4 text-sm text-slate-600 font-medium hover:border-slate-300 hover:bg-slate-100/50 transition-colors"
+                        >
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Modal Footer */}
+        <div className="px-6 py-5 border-t border-slate-100 bg-white sticky bottom-0 flex justify-end gap-3 z-20">
+          <button
+            onClick={onClose}
+            className="px-6 py-3 rounded-xl bg-slate-900 hover:bg-black text-white text-sm font-semibold shadow-md transition-all active:scale-95 cursor-pointer"
+          >
+            Close Plan Sheet
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ResultsPageContent() {
     const searchParams = useSearchParams();
     const projectId = searchParams.get("projectId") ? Number(searchParams.get("projectId")) : null;
 
@@ -166,6 +588,7 @@ export default function ResultsPage() {
     // Real scores based on data
     const [dvsScore, setDvsScore] = useState(0);
     const [breakdown, setBreakdown] = useState<any[]>([]);
+    const [showPlanSheet, setShowPlanSheet] = useState(false);
 
     useEffect(() => {
       async function loadData() {
@@ -514,6 +937,43 @@ export default function ResultsPage() {
             ))}
           </div>
         </div>
+
+        {/* Recommended Action Plan Button & Modal */}
+        <div className="flex flex-col items-center justify-center pt-8 border-t border-slate-200 mt-10">
+          <div className="text-center max-w-lg mb-5">
+            <h4 className="text-lg font-bold text-slate-800">Need a structured path forward?</h4>
+            <p className="text-sm text-slate-500 font-medium mt-1">
+              Get detailed, time-bound diagnostic recommendations and audit frequency guidance customized for your DVS score.
+            </p>
+          </div>
+          <button
+            onClick={() => setShowPlanSheet(true)}
+            className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-[#0284c7] to-[#0369a1] px-8 py-4 text-base font-bold text-white shadow-lg hover:shadow-xl hover:from-[#0369a1] hover:to-[#0284c7] transition-all active:scale-95 duration-200 cursor-pointer"
+          >
+            <FileSpreadsheet className="h-5 w-5" />
+            View Recommended Action Plan
+          </button>
+        </div>
+
+        {showPlanSheet && (
+          <RecommendationModal
+            dvsScore={dvsScore}
+            onClose={() => setShowPlanSheet(false)}
+          />
+        )}
       </div>
     );
   }
+
+export default function ResultsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex flex-col items-center justify-center py-40 gap-4">
+        <Loader2 className="h-12 w-12 animate-spin text-[#0284c7]" />
+        <p className="text-slate-500 font-medium animate-pulse">Analyzing audit results...</p>
+      </div>
+    }>
+      <ResultsPageContent />
+    </Suspense>
+  );
+}
