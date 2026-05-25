@@ -1,9 +1,11 @@
 "use client"
 
-import { useState } from "react"
-import { ArrowLeft, Bell, Globe, Shield, User, Trash2, ChevronRight, Monitor, Moon, Sun } from "lucide-react"
+import { useState, useEffect } from "react"
+import { useTheme } from "next-themes"
+import { ArrowLeft, Bell, Globe, Shield, User, Trash2, ChevronRight, Monitor, Moon, Sun, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/contexts/AuthContext"
+import { deleteAccount } from "@/lib/api"
 
 type Tab = "account" | "notifications" | "preferences" | "security"
 
@@ -26,15 +28,38 @@ function SectionTitle({ icon: Icon, title, desc, color = "sky" }: { icon: React.
 }
 
 export default function SettingsPage() {
+  const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
   const { user, logout } = useAuth()
   const [tab, setTab] = useState<Tab>("account")
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+  const [deleting, setDeleting] = useState(false)
+
+  const handleDeleteAccount = async () => {
+    const confirmed = confirm(
+      "Are you absolutely sure you want to delete your account? This action is completely irreversible and will permanently delete all your projects, validation logs, and audit data."
+    )
+    if (!confirmed) return
+
+    setDeleting(true)
+    try {
+      await deleteAccount()
+      logout() // clears local auth credentials and redirects
+    } catch (err: any) {
+      alert(err.message || "Failed to delete account. Please try again.")
+    } finally {
+      setDeleting(false)
+    }
+  }
 
   const [notifs, setNotifs] = useState({
     email_project: true, email_alerts: true, email_weekly: false,
     push_alerts: true, push_updates: false,
   })
   const [prefs, setPrefs] = useState({
-    theme: "system" as "light" | "dark" | "system",
     units: "litres" as "litres" | "gallons",
     dateFormat: "DD/MM/YYYY",
     language: "en",
@@ -112,9 +137,17 @@ export default function SettingsPage() {
                       className="flex items-center gap-2 rounded-xl border border-red-200 bg-white px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors shadow-sm">
                       Sign out of all devices
                     </button>
-                    <button className="flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 transition-colors shadow-sm">
-                      <Trash2 className="h-4 w-4" />
-                      Delete Account
+                    <button
+                      onClick={handleDeleteAccount}
+                      disabled={deleting}
+                      className="flex items-center gap-2 rounded-xl bg-red-600 disabled:bg-red-700/60 disabled:cursor-not-allowed px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 transition-colors shadow-sm cursor-pointer"
+                    >
+                      {deleting ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-4 w-4" />
+                      )}
+                      {deleting ? "Deleting..." : "Delete Account"}
                     </button>
                   </div>
                 </div>
@@ -166,20 +199,24 @@ export default function SettingsPage() {
 
                 {/* Theme */}
                 <div>
-                  <label className="block text-sm font-semibold text-[#0f172a] mb-3">Theme</label>
-                  <div className="grid grid-cols-3 gap-3">
-                    {[
-                      { value: "light", label: "Light", icon: Sun },
-                      { value: "dark", label: "Dark", icon: Moon },
-                      { value: "system", label: "System", icon: Monitor },
-                    ].map(({ value, label, icon: Icon }) => (
-                      <button key={value} onClick={() => setPrefs(p => ({ ...p, theme: value as "light" | "dark" | "system" }))}
-                        className={`flex flex-col items-center gap-2 rounded-xl border-2 px-4 py-4 text-sm font-medium transition-all ${prefs.theme === value ? "border-[#0284c7] bg-sky-50 text-[#0284c7]" : "border-slate-200 text-slate-600 hover:border-slate-300"}`}>
-                        <Icon className="h-5 w-5" />
-                        {label}
-                      </button>
-                    ))}
-                  </div>
+                  <label className="block text-sm font-semibold text-[#0f172a] mb-3 dark:text-slate-200">Theme</label>
+                  {mounted ? (
+                    <div className="grid grid-cols-3 gap-3">
+                      {[
+                        { value: "light", label: "Light", icon: Sun },
+                        { value: "dark", label: "Dark", icon: Moon },
+                        { value: "system", label: "System", icon: Monitor },
+                      ].map(({ value, label, icon: Icon }) => (
+                        <button key={value} onClick={() => setTheme(value)}
+                          className={`flex flex-col items-center gap-2 rounded-xl border-2 px-4 py-4 text-sm font-medium transition-all ${theme === value ? "border-[#0284c7] bg-sky-50 text-[#0284c7] dark:bg-sky-900/30 dark:border-sky-500/50" : "border-slate-200 text-slate-600 hover:border-slate-300 dark:border-slate-700 dark:text-slate-400 dark:hover:border-slate-600"}`}>
+                          <Icon className="h-5 w-5" />
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="h-[104px] w-full animate-pulse rounded-xl bg-slate-100 dark:bg-slate-800" />
+                  )}
                 </div>
 
                 {/* Units */}
