@@ -4,10 +4,11 @@ import { useState, useEffect, Suspense } from "react"
 import { ArrowLeft, Download, Share2, TrendingUp, Droplets, PieChart, Shield, Gauge, Users, Zap, ClipboardList, Loader2, Activity, CheckCircle, Wrench, DollarSign, FileSpreadsheet, X, AlertCircle, CalendarRange, Clock } from "lucide-react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { getDataInput } from "@/lib/api"
+import { getDataInput, getProject, Project } from "@/lib/api"
 import { ALL_DVS_CATEGORIES, CATEGORY_MAP } from "@/lib/dvs"
 import { calculateDVS, calculateKPIs } from "@/lib/dvs/calculator"
 import { useAudit } from "@/contexts/AuditContext"
+import { generateAuditReport } from "@/lib/pdfGenerator"
 
 // ── Animated Gauge Component ─────────────────────────────────────
 
@@ -582,6 +583,7 @@ function ResultsPageContent() {
     const { dataValues: contextDataValues, validationScores: contextValidationScores, setDataValues: setContextDataValues, setValidationScores: setContextValidationScores } = useAudit();
 
     const [loading, setLoading] = useState(true);
+    const [project, setProject] = useState<Project | null>(null);
     const [dataValues, setDataValues] = useState<Record<string, string>>(contextDataValues);
     const [validationScores, setValidationScores] = useState<Record<string, number>>(contextValidationScores);
 
@@ -598,6 +600,9 @@ function ResultsPageContent() {
         }
 
         try {
+          const projData = await getProject(projectId);
+          setProject(projData);
+
           // If we already have data in context, we don't strictly need to fetch, but we can to ensure it's up to date.
           // To make it offline/session resilient, use context first.
           if (Object.keys(contextDataValues).length > 0 || Object.keys(contextValidationScores).length > 0) {
@@ -811,7 +816,7 @@ function ResultsPageContent() {
               <Share2 className="h-4 w-4" />
               Share
             </button>
-            <button className="flex items-center gap-2 rounded-xl bg-[#0f172a] px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-black transition-all active:scale-95">
+            <button onClick={() => generateAuditReport(project, dvsScore, DVS_RANGES.find(z => z.id === grade.id), kpis, dataValues)} className="flex items-center gap-2 rounded-xl bg-[#0f172a] px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-black transition-all active:scale-95">
               <Download className="h-4 w-4" />
               Export Report
             </button>
