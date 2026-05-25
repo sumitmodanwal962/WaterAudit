@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, Suspense } from "react"
 import { ArrowLeft, CheckCircle2, ShieldAlert, ShieldCheck, Save, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useSearchParams, useRouter } from "next/navigation"
@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { getDataInput, saveDataInput } from "@/lib/api"
 import { useAudit } from "@/contexts/AuditContext"
 
-export default function DataInputPage() {
+function DataInputPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const projectId = searchParams.get("projectId") ? Number(searchParams.get("projectId")) : null;
@@ -438,4 +438,17 @@ export default function DataInputPage() {
       )}
     </div>
   )
+}
+
+export default function DataInputPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex flex-col items-center justify-center py-32 gap-4">
+        <Loader2 className="h-10 w-10 animate-spin text-[#0284c7]" />
+        <p className="text-slate-400 font-medium animate-pulse">Loading project progress...</p>
+      </div>
+    }>
+      <DataInputPageContent />
+    </Suspense>
+  );
 }
