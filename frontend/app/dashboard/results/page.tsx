@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect, Suspense } from "react"
-import { ArrowLeft, Download, Share2, TrendingUp, Droplets, PieChart, Shield, Gauge, Users, Zap, ClipboardList, Loader2, Activity, CheckCircle, Wrench, DollarSign, FileSpreadsheet, X, AlertCircle, CalendarRange, Clock } from "lucide-react"
+import { ArrowLeft, Download, Share2, ClipboardList, Loader2, Wrench, DollarSign, FileSpreadsheet, X, AlertCircle, CalendarRange, Clock, PieChart, TrendingUp } from "lucide-react"
+import { CoverageIcon, PerCapitaIcon, WaterLossIcon, ContinuityIcon, QualityIcon, PressureIcon, RevenueRatioIcon, ZapIcon, BasicGaugeIcon, MoneyIcon } from "@/components/CustomIcons"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { getDataInput, getProject, Project } from "@/lib/api"
@@ -46,7 +47,10 @@ function GaugeChart({ value, max, label, icon: Icon, color, suffix = "" }: {
   const colors = getColor();
 
   return (
-    <div className="flex flex-col items-center gap-3 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-lg hover:border-slate-300 transition-all duration-300">
+    <div className="relative flex flex-col items-center gap-3 rounded-3xl border border-slate-200 bg-white p-6 pt-12 shadow-sm hover:shadow-lg hover:border-slate-300 transition-all duration-300">
+      <div className="absolute top-4 left-4 flex h-14 w-14 items-center justify-center rounded-xl shadow-sm" style={{ backgroundColor: colors.bg }}>
+        <Icon className="h-8 w-8" style={{ color: colors.stroke }} />
+      </div>
       <div className="relative">
         <svg width="180" height="100" viewBox="0 0 200 110" className="drop-shadow-sm">
           {/* Background track */}
@@ -92,11 +96,8 @@ function GaugeChart({ value, max, label, icon: Icon, color, suffix = "" }: {
           {suffix && <span className="text-xs font-medium text-slate-400 -mt-0.5">{suffix}</span>}
         </div>
       </div>
-      <div className="flex items-center gap-2 text-center">
-        <div className="flex h-7 w-7 items-center justify-center rounded-lg" style={{ backgroundColor: colors.bg }}>
-          <Icon className="h-3.5 w-3.5" style={{ color: colors.stroke }} />
-        </div>
-        <span className="text-sm font-semibold text-slate-700">{label}</span>
+      <div className="flex items-center justify-center text-center mt-1">
+        <span className="text-sm font-bold text-slate-700">{label}</span>
       </div>
     </div>
   );
@@ -692,7 +693,7 @@ function ResultsPageContent() {
         label: "Non-Revenue Water",
         value: realKpis.nrwPercentage,
         max: 100,
-        icon: Droplets,
+        icon: WaterLossIcon,
         color: "auto",
         suffix: "%"
       },
@@ -700,7 +701,7 @@ function ResultsPageContent() {
         label: "Revenue Water Ratio",
         value: realKpis.revenueWaterRatio,
         max: 100,
-        icon: TrendingUp,
+        icon: RevenueRatioIcon,
         color: "auto",
         suffix: "%"
       },
@@ -708,14 +709,14 @@ function ResultsPageContent() {
         label: "Infrastructure Leakage",
         value: realKpis.infrastructureLeakageIndex,
         max: 10,
-        icon: Gauge,
+        icon: WaterLossIcon,
         color: "auto"
       },
       {
         label: "CARL",
         value: realKpis.carl,
         max: Math.max(realKpis.carl * 1.2, 1000),
-        icon: Zap,
+        icon: ZapIcon,
         color: "#0284c7",
         suffix: "L"
       },
@@ -723,7 +724,7 @@ function ResultsPageContent() {
         label: "UARL",
         value: realKpis.uarl,
         max: Math.max(realKpis.uarl * 1.2, 1000),
-        icon: Activity,
+        icon: BasicGaugeIcon,
         color: "#0284c7",
         suffix: "L"
       },
@@ -731,7 +732,7 @@ function ResultsPageContent() {
         label: "Supply Coverage",
         value: calcIndicatorNum(() => (Number(dataValues.HouseholdsWithConnection || 0) * 100) / Number(dataValues.TotalHouseholds || 1)),
         max: 100,
-        icon: Users,
+        icon: CoverageIcon,
         color: "auto",
         suffix: "%"
       },
@@ -739,7 +740,7 @@ function ResultsPageContent() {
         label: "Per Capita Supply",
         value: calcIndicatorNum(() => Number(dataValues.WaterSupplied || 0) / (Number(dataValues.DaysInMonth || 1) * Number(dataValues.Population || 1))),
         max: 200,
-        icon: Droplets,
+        icon: PerCapitaIcon,
         color: "#0284c7",
         suffix: "LPCD"
       },
@@ -747,15 +748,15 @@ function ResultsPageContent() {
         label: "Metering Extent",
         value: calcIndicatorNum(() => (Number(dataValues.MeteredDirectConnections || 0) + Number(dataValues.MeteredPublicStandposts || 0)) * 100 / (Number(dataValues.TotalDirectConnections || 0) + Number(dataValues.TotalMeteredDirectConnections || 1))),
         max: 100,
-        icon: Gauge,
+        icon: BasicGaugeIcon,
         color: "auto",
         suffix: "%"
       },
       {
-        label: "Quantity Supplied",
+        label: "Water Quality",
         value: calcIndicatorNum(() => (Number(dataValues.WaterQualitySamples || 0) * 100) / Number(dataValues.TotalComplaints || 1)),
         max: 100,
-        icon: CheckCircle,
+        icon: QualityIcon,
         color: "auto",
         suffix: "%"
       },
@@ -771,7 +772,7 @@ function ResultsPageContent() {
         label: "Cost Recovery",
         value: calcIndicatorNum(() => Number(dataValues.AnnualRevenues || 0) * 100 / Number(dataValues.AnnualExpenses || 1)),
         max: 100,
-        icon: DollarSign,
+        icon: MoneyIcon,
         color: "auto",
         suffix: "%"
       },
@@ -779,7 +780,7 @@ function ResultsPageContent() {
         label: "Collection Efficiency",
         value: calcIndicatorNum(() => Number(dataValues.CurrentRevenuesCollected || 0) * 100 / Number(dataValues.TotalRevenuesBilled || 1)),
         max: 100,
-        icon: TrendingUp,
+        icon: RevenueRatioIcon,
         color: "auto",
         suffix: "%"
       },
@@ -907,12 +908,12 @@ function ResultsPageContent() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            <GaugeChart value={kpis.nrwPercentage} max={100} label="Non-Revenue Water" icon={Droplets} color="auto" suffix="%" />
-            <GaugeChart value={kpis.revenueWaterRatio} max={100} label="Revenue Water Ratio" icon={TrendingUp} color="auto" suffix="%" />
-            <GaugeChart value={kpis.economicalLeakageLevel} max={5} label="Economical Leakage" icon={Zap} color="#0284c7" />
-            <GaugeChart value={kpis.infrastructureLeakageIndex} max={10} label="Infrastructure Leakage Index" icon={Gauge} color="auto" />
-            <GaugeChart value={kpis.coverageOfConnections} max={100} label="Supply Coverage" icon={Users} color="auto" suffix="%" />
-            <GaugeChart value={kpis.perCapitaWaterSupply} max={200} label="Per Capita Supply" icon={Shield} color="#0284c7" suffix="LPCD" />
+            <GaugeChart value={kpis.nrwPercentage} max={100} label="Non-Revenue Water" icon={WaterLossIcon} color="auto" suffix="%" />
+            <GaugeChart value={kpis.revenueWaterRatio} max={100} label="Revenue Water Ratio" icon={RevenueRatioIcon} color="auto" suffix="%" />
+            <GaugeChart value={kpis.economicalLeakageLevel} max={5} label="Economical Leakage" icon={ZapIcon} color="#0284c7" />
+            <GaugeChart value={kpis.infrastructureLeakageIndex} max={10} label="Infrastructure Leakage Index" icon={WaterLossIcon} color="auto" />
+            <GaugeChart value={kpis.coverageOfConnections} max={100} label="Supply Coverage" icon={CoverageIcon} color="auto" suffix="%" />
+            <GaugeChart value={kpis.perCapitaWaterSupply} max={200} label="Per Capita Supply" icon={PerCapitaIcon} color="#0284c7" suffix="LPCD" />
           </div>
         </div>
 
