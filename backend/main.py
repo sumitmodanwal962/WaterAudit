@@ -127,6 +127,17 @@ def change_password(
     return {"message": "Password updated successfully"}
 
 
+# ── Users: Delete Account ─────────────────────────────────────────
+@app.delete("/api/users/me", status_code=204)
+def delete_user_account(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    db.delete(current_user)
+    db.commit()
+    return None
+
+
 # ── Projects: List ────────────────────────────────────────────────
 @app.get("/api/projects", response_model=List[models.ProjectResponse])
 def list_projects(
@@ -188,6 +199,7 @@ def delete_project(
     ).first()
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
+    db.delete(project)
     db.commit()
     return None
 

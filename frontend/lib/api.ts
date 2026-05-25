@@ -107,6 +107,10 @@ export async function deleteProject(id: number): Promise<void> {
   return apiFetch<void>(`/api/projects/${id}`, { method: "DELETE" });
 }
 
+export async function deleteAccount(): Promise<void> {
+  return apiFetch<void>("/api/users/me", { method: "DELETE" });
+}
+
 // ── Data Input ───────────────────────────────────────────────────
 
 export async function getDataInput(projectId: number): Promise<DataInput> {

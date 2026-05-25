@@ -123,3 +123,43 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Custom global dark mode overrides for hardcoded light backgrounds and slate texts */
+.dark .bg-white {
+  background-color: var(--card) !important;
+}
+.dark .bg-slate-50 {
+  background-color: var(--background) !important;
+}
+.dark .bg-slate-100 {
+  background-color: var(--muted) !important;
+}
+.dark .text-slate-700, 
+.dark .text-slate-800, 
+.dark .text-slate-900, 
+.dark .text-\[\#0f172a\] {
+  color: var(--foreground) !important;
+}
+.dark .text-slate-500, 
+.dark .text-slate-600 {
+  color: var(--muted-foreground) !important;
+}
+.dark .border-slate-200, 
+.dark .border-slate-100 {
+  border-color: var(--border) !important;
+}
+.dark .hover\:bg-slate-50:hover, 
+.dark .hover\:bg-slate-100:hover {
+  background-color: var(--muted) !important;
+}
+.dark .focus\:bg-white:focus {
+  background-color: var(--card) !important;
+}
+.dark path[stroke="#e2e8f0"] {
+  stroke: var(--border) !important;
+}
+.dark line[stroke="#cbd5e1"] {
+  stroke: var(--border) !important;
+}
+
+
