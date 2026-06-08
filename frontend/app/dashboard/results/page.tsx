@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, Suspense } from "react"
-import { ArrowLeft, Download, Share2, ClipboardList, Loader2, Wrench, DollarSign, FileSpreadsheet, X, AlertCircle, CalendarRange, Clock, PieChart, TrendingUp } from "lucide-react"
+import { ArrowLeft, Download, Share2, ClipboardList, Loader2, Wrench, DollarSign, FileSpreadsheet, X, AlertCircle, CalendarRange, Clock, PieChart, TrendingUp, CheckCircle } from "lucide-react"
 import { CoverageIcon, PerCapitaIcon, WaterLossIcon, ContinuityIcon, QualityIcon, PressureIcon, RevenueRatioIcon, ZapIcon, BasicGaugeIcon, MoneyIcon } from "@/components/CustomIcons"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
@@ -817,7 +817,7 @@ function ResultsPageContent() {
               <Share2 className="h-4 w-4" />
               Share
             </button>
-            <button onClick={() => generateAuditReport(project, dvsScore, DVS_RANGES.find(z => z.id === grade.id), kpis, dataValues)} className="flex items-center gap-2 rounded-xl bg-[#0f172a] px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-black transition-all active:scale-95">
+            <button onClick={() => generateAuditReport(project, dvsScore, getDvsZoneData(dvsScore), kpis, dataValues)} className="flex items-center gap-2 rounded-xl bg-[#0f172a] px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-black transition-all active:scale-95">
               <Download className="h-4 w-4" />
               Export Report
             </button>
