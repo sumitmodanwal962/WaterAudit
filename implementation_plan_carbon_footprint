@@ -1,0 +1,160 @@
+# Carbon Footprint Module for Water Audit
+
+## Background
+
+The WaterAudit application currently performs a comprehensive water balance audit with Data Validity Score (DVS), KPI calculations (NRW, ILI, RWR, ELL, etc.), and Service Level Benchmarks. The user wants to extend the platform to **calculate the carbon footprint** of the water utility being audited.
+
+The carbon footprint of a water utility is governed by the **Energy–Water–Carbon Nexus**: most emissions come from electricity consumed during water sourcing, treatment, and distribution (Scope 2), with secondary contributions from treatment chemicals (Scope 3) and on-site fuel/generators (Scope 1).
+
+---
+
+## What Data Is Already Available?
+
+From the existing audit data inputs and supplementary fields, we can reuse:
+
+| Existing Field | Key | Use in Carbon Calculation |
+|---|---|---|
+| Volume from Own Sources | `VOS` | Total water produced → basis for energy intensity |
+| Water Imported | `WI` | Imported volume (often pumped) → energy for conveyance |
+| Water Exported | `WE` | Exported volume → energy credit/deduction |
+| System Input Volume | `VOS + WI` | Total volume entering the system |
+| Total Water Losses | `TotalWaterLosses` | Losses = wasted energy (carbon associated with lost water) |
+| Real Losses (CARL) | Derived | Real losses contribute to "carbon of wasted water" |
+| Length of Mains | `Lm` | Distribution network size → pumping energy |
+| Average Operating Pressure | `AOP` | Pressure head → pumping power indicator |
+| Number of Connections | `Nc` | Scale of distribution |
+| Population Served | `Population` | Normalization (per-capita footprint) |
+| Project Location | `Project.location` | Can be used to select regional grid emission factor |
+
+---
+
+## What Additional Data Is Needed?
+
+To compute an accurate carbon footprint, we need **a few additional inputs** that the current audit does not collect:
+
+### Required New Inputs (Energy Data — Scope 2)
+
+| Field | Key | Unit | Description |
+|---|---|---|---|
+| Annual Electricity Consumption | `AnnualElectricityKwh` | kWh/year | Total electricity consumed by the utility for water operations |
+| Grid Emission Factor | `GridEmissionFactor` | kgCO₂/kWh | Regional grid emission factor (default: 0.710 for India per CEA 2024-25) |
+
+### Optional New Inputs (For Enhanced Accuracy)
+
+| Field | Key | Unit | Description |
+|---|---|---|---|
+| Diesel/Fuel Consumption | `AnnualDieselLitres` | litres/year | Fuel used in backup generators or pump sets (Scope 1) |
+| Renewable Energy Generated On-site | `RenewableEnergyKwh` | kWh/year | Solar/wind energy generated on-site (offsets Scope 2) |
+| Annual Chemical Usage — Chlorine | `ChlorineUsageKg` | kg/year | Chlorine used for disinfection |
+| Annual Chemical Usage — Alum | `AlumUsageKg` | kg/year | Alum/coagulant used for treatment |
+
+> [!IMPORTANT]
+> **Only 2 fields are strictly required** (`AnnualElectricityKwh` and `GridEmissionFactor`). All others are optional enhancements. The grid emission factor will have a sensible default (0.710 for India) so in practice the user may only need to enter their electricity consumption.
+
+---
+
+## Carbon Footprint Calculation Methodology
+
+Based on the GHG Protocol and the Energy-Water-Carbon Nexus framework:
+
+### Scope 2 — Indirect Energy Emissions (Primary)
+```
+Scope2_Emissions (kgCO₂) = (AnnualElectricityKwh - RenewableEnergyKwh) × GridEmissionFactor
+```
+
+### Scope 1 — Direct Emissions (Optional)
+```
+Scope1_Emissions (kgCO₂) = AnnualDieselLitres × 2.68  (diesel emission factor)
+```
+
+### Scope 3 — Embedded Chemical Emissions (Optional)
+```
+Scope3_Emissions (kgCO₂) = (ChlorineUsageKg × 1.08) + (AlumUsageKg × 0.70)
+```
+
+### Total & Derived Metrics
+```
+Total_Carbon_Footprint (kgCO₂) = Scope1 + Scope2 + Scope3
+
+// Normalized metrics using existing data:
+Carbon_Per_MLD (kgCO₂/MLD) = Total / (SystemInputVolume × 365)
+Carbon_Per_Capita (kgCO₂/person) = Total / Population
+Carbon_of_Water_Losses (kgCO₂) = (TotalWaterLosses / SystemInputVolume) × Total
+Energy_Intensity (kWh/MLD) = AnnualElectricityKwh / (SystemInputVolume × 365)
+```
+
+---
+
+## Proposed Changes
+
+### Frontend — New Data Inputs
+
+#### [MODIFY] [index.ts](file:///c:/Users/MJ/WaterAudit/frontend/lib/dvs/index.ts)
+- Add new carbon footprint supplementary inputs to `SUPPLEMENTARY_INPUTS`:
+  - `AnnualElectricityKwh` (required)
+  - `GridEmissionFactor` (with default 0.710)
+  - `AnnualDieselLitres` (optional)
+  - `RenewableEnergyKwh` (optional)
+  - `ChlorineUsageKg` (optional)
+  - `AlumUsageKg` (optional)
+- These will automatically appear in the "Supplementary Details" section of the Data Input page since they have no `CATEGORY_MAP` entry.
+
+---
+
+### Frontend — Carbon Calculator
+
+#### [NEW] [carbonCalculator.ts](file:///c:/Users/MJ/WaterAudit/frontend/lib/carbonCalculator.ts)
+- New module with:
+  - `calculateCarbonFootprint(data: Record<string, number>)` function
+  - Returns: `CarbonFootprintResults` interface with Scope 1, 2, 3 emissions, total, and normalized metrics
+  - Default emission factors as constants (India grid: 0.710, diesel: 2.68, chlorine: 1.08, alum: 0.70)
+
+---
+
+### Frontend — Results Page Enhancement
+
+#### [MODIFY] [page.tsx](file:///c:/Users/MJ/WaterAudit/frontend/app/dashboard/results/page.tsx)
+- Add a new **"Carbon Footprint Analysis"** section after the existing KPI gauges section
+- Display:
+  - **Total Carbon Footprint** (tonnes CO₂/year) as a hero metric
+  - **Scope breakdown** (Scope 1, 2, 3) as a stacked/segmented bar or pie visualization
+  - **Normalized KPIs**: Carbon per MLD, Carbon per Capita, Carbon of Water Losses
+  - **"Carbon Cost of Water Losses"** — highlights how much CO₂ is wasted due to NRW, tying the water audit directly to the carbon story
+- Add a CO₂ leaf/cloud icon from lucide-react (`Cloud`, `Leaf`, `Zap`)
+
+---
+
+### Backend — No Changes Required
+
+The backend uses a flexible JSON `data_values` column (`DataInput.data_values`) to store all input data. The new carbon-related fields will be stored as additional keys in this existing JSON structure — **no schema migration or backend changes are needed**.
+
+---
+
+## User Review Required
+
+> [!IMPORTANT]
+> **Scope Decision**: The plan above covers Scope 1, 2, and 3 (chemicals only). Should we also include:
+> - Embodied carbon of infrastructure (pipes, concrete)? This would require significantly more data.
+> - Employee commute / fleet vehicles? This is typically outside a water audit scope.
+
+> [!IMPORTANT]
+> **Default Grid Factor**: I'm defaulting to 0.710 kgCO₂/kWh (India CEA 2024-25). Should this be adjustable via a dropdown of countries/regions, or is a single editable field sufficient?
+
+> [!IMPORTANT]
+> **Display in Results**: Should the carbon footprint be:
+> - A new section on the existing results page (recommended — keeps everything in one view)?
+> - A separate tab/page?
+
+---
+
+## Verification Plan
+
+### Automated Tests
+- Verify carbon calculator with known input values (e.g., 1,000,000 kWh × 0.710 = 710,000 kgCO₂)
+- Verify normalized metrics with sample data
+- Ensure new supplementary inputs appear correctly on the data input page
+
+### Manual Verification
+- Enter sample data and confirm the carbon footprint section renders correctly on the results page
+- Verify that saving/loading preserves the new carbon-related fields
+- Confirm the grid emission factor default works as expected
