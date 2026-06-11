@@ -260,5 +260,5 @@ Copyright © 2026 [theub002](https://github.com/theub002) and [sumitmodanwal962]
 
 ## 👥 Authors
 
-- **theub002** — [GitHub](https://github.com/theub002)
-- **sumitmodanwal962** — [GitHub](https://github.com/sumitmodanwal962)
+- **Mohammad Junaid** — [GitHub](https://github.com/theub002)
+- **Sumit Modanwal** — [GitHub](https://github.com/sumitmodanwal962)
