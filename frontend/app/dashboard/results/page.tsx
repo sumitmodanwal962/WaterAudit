@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, Suspense } from "react"
-import { ArrowLeft, Download, Share2, ClipboardList, Loader2, Wrench, DollarSign, FileSpreadsheet, X, AlertCircle, CalendarRange, Clock, PieChart, TrendingUp, CheckCircle } from "lucide-react"
+import { ArrowLeft, Download, Share2, ClipboardList, Loader2, Wrench, DollarSign, FileSpreadsheet, X, AlertCircle, CalendarRange, Clock, PieChart, TrendingUp, CheckCircle, Leaf, Zap, Factory, FlaskConical, Sun } from "lucide-react"
 import { CoverageIcon, PerCapitaIcon, WaterLossIcon, ContinuityIcon, QualityIcon, PressureIcon, RevenueRatioIcon, ZapIcon, BasicGaugeIcon, MoneyIcon } from "@/components/CustomIcons"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
@@ -10,6 +10,7 @@ import { ALL_DVS_CATEGORIES, CATEGORY_MAP } from "@/lib/dvs"
 import { calculateDVS, calculateKPIs } from "@/lib/dvs/calculator"
 import { useAudit } from "@/contexts/AuditContext"
 import { generateAuditReport } from "@/lib/pdfGenerator"
+import { calculateCarbonFootprint, CarbonFootprintResults } from "@/lib/carbonCalculator"
 
 // ── Animated Gauge Component ─────────────────────────────────────
 
@@ -687,6 +688,7 @@ function ResultsPageContent() {
     }, {} as Record<string, number>);
 
     const realKpis = calculateKPIs(numericData);
+    const carbonResults = calculateCarbonFootprint(numericData);
 
     const indicatorsData = [
       {
@@ -894,6 +896,173 @@ function ResultsPageContent() {
             ))}
           </div>
         </div>
+
+        {/* ── Carbon Footprint Analysis ──────────────────────────── */}
+        {carbonResults.hasAnyData && (
+          <div className="space-y-6">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50">
+                <Leaf className="h-4.5 w-4.5 text-emerald-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-[#0f172a]">Carbon Footprint Analysis</h3>
+                <p className="text-xs text-slate-500">GHG emissions from water utility operations (GHG Protocol)</p>
+              </div>
+            </div>
+
+            {/* Hero Total Emissions Card */}
+            <div className="relative overflow-hidden rounded-3xl border border-emerald-200 bg-gradient-to-br from-emerald-900 via-emerald-800 to-teal-900 p-8 text-white shadow-xl">
+              <div className="absolute -top-16 -right-16 h-56 w-56 rounded-full bg-white/5 blur-2xl" />
+              <div className="absolute -bottom-12 -left-12 h-40 w-40 rounded-full bg-emerald-400/10 blur-xl" />
+
+              <div className="relative flex flex-col lg:flex-row items-center gap-8">
+                <div className="flex-shrink-0 text-center">
+                  <div className="relative inline-flex flex-col items-center">
+                    <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-sm border border-white/10 shadow-lg mb-4">
+                      <Leaf className="h-10 w-10 text-emerald-300" />
+                    </div>
+                    <span className="text-5xl font-black tracking-tighter">{carbonResults.totalTonnes.toLocaleString(undefined, { maximumFractionDigits: 1 })}</span>
+                    <span className="text-sm font-medium text-white/50 mt-1">tonnes CO₂ / year</span>
+                  </div>
+                </div>
+
+                <div className="flex-1 space-y-5 w-full">
+                  <div>
+                    <h2 className="text-xl font-bold mb-1">Total Annual Carbon Footprint</h2>
+                    <p className="text-white/50 text-sm">Breakdown by emission scope based on provided data</p>
+                  </div>
+
+                  {/* Scope Breakdown Bars */}
+                  <div className="space-y-3">
+                    {/* Scope 2 - Electricity (always shown if has data) */}
+                    {carbonResults.hasElectricity && (() => {
+                      const pct = carbonResults.totalKg > 0 ? (carbonResults.scope2 / carbonResults.totalKg) * 100 : 0;
+                      return (
+                        <div className="space-y-1.5">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="flex items-center gap-2 font-semibold">
+                              <Zap className="h-3.5 w-3.5 text-yellow-300" />
+                              Scope 2 — Grid Electricity
+                            </span>
+                            <span className="font-bold text-emerald-200">{(carbonResults.scope2 / 1000).toFixed(1)}t ({pct.toFixed(1)}%)</span>
+                          </div>
+                          <div className="h-2.5 rounded-full bg-white/10 overflow-hidden">
+                            <div className="h-full rounded-full bg-gradient-to-r from-yellow-400 to-amber-500 transition-all duration-1000 ease-out" style={{ width: `${pct}%` }} />
+                          </div>
+                        </div>
+                      );
+                    })()}
+
+                    {/* Scope 1 - Diesel */}
+                    {carbonResults.hasDiesel && (() => {
+                      const pct = carbonResults.totalKg > 0 ? (carbonResults.scope1 / carbonResults.totalKg) * 100 : 0;
+                      return (
+                        <div className="space-y-1.5">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="flex items-center gap-2 font-semibold">
+                              <Factory className="h-3.5 w-3.5 text-orange-300" />
+                              Scope 1 — Diesel / Fuel
+                            </span>
+                            <span className="font-bold text-emerald-200">{(carbonResults.scope1 / 1000).toFixed(1)}t ({pct.toFixed(1)}%)</span>
+                          </div>
+                          <div className="h-2.5 rounded-full bg-white/10 overflow-hidden">
+                            <div className="h-full rounded-full bg-gradient-to-r from-orange-400 to-red-500 transition-all duration-1000 ease-out" style={{ width: `${pct}%` }} />
+                          </div>
+                        </div>
+                      );
+                    })()}
+
+                    {/* Scope 3 - Chemicals */}
+                    {carbonResults.hasChemicals && (() => {
+                      const pct = carbonResults.totalKg > 0 ? (carbonResults.scope3 / carbonResults.totalKg) * 100 : 0;
+                      return (
+                        <div className="space-y-1.5">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="flex items-center gap-2 font-semibold">
+                              <FlaskConical className="h-3.5 w-3.5 text-purple-300" />
+                              Scope 3 — Treatment Chemicals
+                            </span>
+                            <span className="font-bold text-emerald-200">{(carbonResults.scope3 / 1000).toFixed(1)}t ({pct.toFixed(1)}%)</span>
+                          </div>
+                          <div className="h-2.5 rounded-full bg-white/10 overflow-hidden">
+                            <div className="h-full rounded-full bg-gradient-to-r from-purple-400 to-violet-500 transition-all duration-1000 ease-out" style={{ width: `${pct}%` }} />
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+
+                  {/* Renewable offset note */}
+                  {carbonResults.hasRenewable && (
+                    <div className="flex items-center gap-2 bg-white/10 rounded-xl px-4 py-2.5 text-sm">
+                      <Sun className="h-4 w-4 text-yellow-300" />
+                      <span className="text-white/80">Renewable energy offset applied to Scope 2 calculation</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Carbon Normalized Metrics Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Carbon per MLD */}
+              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition-all">
+                <div className="flex items-center gap-2.5 mb-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50">
+                    <Leaf className="h-4 w-4 text-emerald-600" />
+                  </div>
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Per MLD</span>
+                </div>
+                <div className="text-2xl font-black text-slate-800 tracking-tight">
+                  {carbonResults.carbonPerMLD.toLocaleString(undefined, { maximumFractionDigits: 1 })}
+                </div>
+                <span className="text-xs font-medium text-slate-400">kgCO₂ / MLD processed</span>
+              </div>
+
+              {/* Carbon per Capita */}
+              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition-all">
+                <div className="flex items-center gap-2.5 mb-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-50">
+                    <PerCapitaIcon className="h-4 w-4 text-sky-600" />
+                  </div>
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Per Capita</span>
+                </div>
+                <div className="text-2xl font-black text-slate-800 tracking-tight">
+                  {carbonResults.carbonPerCapita.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                </div>
+                <span className="text-xs font-medium text-slate-400">kgCO₂ / person / year</span>
+              </div>
+
+              {/* Carbon of Water Losses */}
+              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition-all">
+                <div className="flex items-center gap-2.5 mb-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-50">
+                    <WaterLossIcon className="h-4 w-4 text-rose-500" />
+                  </div>
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Wasted (NRW)</span>
+                </div>
+                <div className="text-2xl font-black text-rose-600 tracking-tight">
+                  {(carbonResults.carbonOfWaterLosses / 1000).toLocaleString(undefined, { maximumFractionDigits: 1 })}
+                </div>
+                <span className="text-xs font-medium text-slate-400">tonnes CO₂ lost to NRW</span>
+              </div>
+
+              {/* Energy Intensity */}
+              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition-all">
+                <div className="flex items-center gap-2.5 mb-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50">
+                    <Zap className="h-4 w-4 text-amber-600" />
+                  </div>
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Energy Intensity</span>
+                </div>
+                <div className="text-2xl font-black text-slate-800 tracking-tight">
+                  {carbonResults.energyIntensity.toLocaleString(undefined, { maximumFractionDigits: 1 })}
+                </div>
+                <span className="text-xs font-medium text-slate-400">kWh / MLD</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ── KPI Gauges Grid ───────────────────────────────────── */}
         <div>

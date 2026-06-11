@@ -1,10 +1,10 @@
 "use client"
 
 import { useEffect, useState, Suspense } from "react"
-import { ArrowLeft, CheckCircle2, ShieldAlert, ShieldCheck, Save, Loader2 } from "lucide-react"
+import { ArrowLeft, CheckCircle2, ShieldAlert, ShieldCheck, Save, Loader2, Leaf } from "lucide-react"
 import Link from "next/link"
 import { useSearchParams, useRouter } from "next/navigation"
-import { DATA_INPUTS, VALIDATION_QUESTIONS, CATEGORY_MAP, ALL_DVS_CATEGORIES } from "@/lib/data"
+import { DATA_INPUTS, VALIDATION_QUESTIONS, CATEGORY_MAP, ALL_DVS_CATEGORIES, CARBON_INPUTS } from "@/lib/data"
 import { gradeCategory } from "@/lib/dvs/calculator"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { getDataInput, saveDataInput } from "@/lib/api"
@@ -255,7 +255,7 @@ function DataInputPageContent() {
             <h2 className="text-xl font-bold text-[#0f172a] mb-6">Supplementary Details</h2>
             <div className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
               <ul className="divide-y divide-slate-100">
-                {DATA_INPUTS.filter(input => !CATEGORY_MAP[input.key]).map((input) => (
+                {DATA_INPUTS.filter(input => !CATEGORY_MAP[input.key] && !CARBON_INPUTS.some(c => c.key === input.key)).map((input) => (
                   <li key={input.key} className="p-5 sm:p-6 hover:bg-slate-50 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-1.5">
@@ -277,6 +277,55 @@ function DataInputPageContent() {
                           className="w-full bg-transparent px-4 py-2.5 text-sm font-medium text-[#0f172a] outline-none"
                         />
                         <div className="px-4 text-xs font-semibold text-slate-400 bg-slate-100 border-l border-slate-200 h-full flex items-center justify-center whitespace-nowrap">
+                          {input.unit}
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          {/* Carbon Footprint Inputs Section */}
+          <div>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50">
+                <Leaf className="h-4.5 w-4.5 text-emerald-600" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-[#0f172a]">Carbon Footprint Inputs</h2>
+                <p className="text-xs text-slate-500">Energy & emissions data for carbon footprint analysis (GHG Protocol)</p>
+              </div>
+            </div>
+            <div className="rounded-3xl border border-emerald-200 bg-white shadow-sm overflow-hidden">
+              <div className="px-5 py-3 bg-emerald-50/60 border-b border-emerald-100 flex items-center gap-2">
+                <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider">Only electricity consumption is required — all other fields are optional</span>
+              </div>
+              <ul className="divide-y divide-emerald-50">
+                {CARBON_INPUTS.map((input) => (
+                  <li key={input.key} className="p-5 sm:p-6 hover:bg-emerald-50/30 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-1.5">
+                        <h3 className="font-bold text-[#0f172a] text-sm sm:text-base">{input.label}</h3>
+                        <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-600 border border-emerald-200 whitespace-nowrap">
+                          {input.key}
+                        </span>
+                      </div>
+                      <p className="text-sm text-slate-500 max-w-2xl leading-relaxed">{input.description}</p>
+                    </div>
+
+                    <div className="w-full md:w-72 shrink-0">
+                      <div className="flex items-center bg-emerald-50/40 rounded-xl border border-emerald-200 overflow-hidden focus-within:ring-1 focus-within:ring-emerald-500 focus-within:border-emerald-500 transition-all shadow-sm">
+                        <input
+                          type="number"
+                          placeholder="0.00"
+                          value={dataValues[input.key] || ''}
+                          onChange={(e) => handleInputChange(input.key, e.target.value)}
+                          className="w-full bg-transparent px-4 py-2.5 text-sm font-medium text-[#0f172a] outline-none"
+                        />
+                        <div className="px-4 text-xs font-semibold text-emerald-500 bg-emerald-50 border-l border-emerald-200 h-full flex items-center justify-center whitespace-nowrap">
                           {input.unit}
                         </div>
                       </div>
