@@ -113,5 +113,15 @@ export const SUPPLEMENTARY_INPUTS: DataInput[] = [
   { key: "HoursPerDay", label: "Average Hours of Water Supply Per Day", description: "Average number of supply hours per day", type: "number", unit: "hours/day" },
 ];
 
-/** Combined flat list: categorized inputs first, then supplementary */
-export const DATA_INPUTS: DataInput[] = [...ALL_DATA_INPUTS, ...SUPPLEMENTARY_INPUTS];
+/** Carbon footprint supplementary inputs (optional — used if filled) */
+export const CARBON_INPUTS: DataInput[] = [
+  { key: "AnnualElectricityKwh", label: "Annual Electricity Consumption", description: "Total electricity consumed by the utility for water operations during the audit year", type: "number", unit: "kWh/year" },
+  { key: "GridEmissionFactor", label: "Grid Emission Factor", description: "Regional grid emission factor — defaults to 0.710 kgCO₂/kWh (India CEA 2024-25) if left empty", type: "number", unit: "kgCO₂/kWh" },
+  { key: "AnnualDieselLitres", label: "Annual Diesel / Fuel Consumption", description: "Fuel used in backup generators or diesel pump sets (optional)", type: "number", unit: "litres/year" },
+  { key: "RenewableEnergyKwh", label: "On-site Renewable Energy Generated", description: "Solar, wind, or other renewable energy generated on-site (optional)", type: "number", unit: "kWh/year" },
+  { key: "ChlorineUsageKg", label: "Annual Chlorine Usage", description: "Chlorine used for water disinfection during the audit year (optional)", type: "number", unit: "kg/year" },
+  { key: "AlumUsageKg", label: "Annual Alum / Coagulant Usage", description: "Alum or other coagulant used for water treatment during the audit year (optional)", type: "number", unit: "kg/year" },
+];
+
+/** Combined flat list: categorized inputs first, then supplementary, then carbon */
+export const DATA_INPUTS: DataInput[] = [...ALL_DATA_INPUTS, ...SUPPLEMENTARY_INPUTS, ...CARBON_INPUTS];

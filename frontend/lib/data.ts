@@ -7,6 +7,7 @@ export {
   CATEGORY_MAP,
   ALL_DVS_CATEGORIES,
   SUPPLEMENTARY_INPUTS,
+  CARBON_INPUTS,
 } from "./dvs";
 
 export type { ValidationQuestion, DataInput, DVSCategory } from "./dvs";
