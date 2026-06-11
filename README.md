@@ -2,8 +2,6 @@
 
 A comprehensive web platform for conducting water balance audits of urban water utilities. WaterAudit helps auditors evaluate water distribution systems by computing **Data Validity Scores (DVS)**, **Key Performance Indicators (KPIs)**, **Service Level Benchmarks**, and **Carbon Footprint Analysis** — all following internationally recognized IWA/AWWA standards.
 
----
-
 ## ✨ Features
 
 - **User Authentication** — Secure JWT-based registration, login, and profile management
