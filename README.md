@@ -1,4 +1,4 @@
-<![CDATA[# 💧 WaterAudit
+💧 WaterAudit
 
 A comprehensive web platform for conducting water balance audits of urban water utilities. WaterAudit helps auditors evaluate water distribution systems by computing **Data Validity Scores (DVS)**, **Key Performance Indicators (KPIs)**, **Service Level Benchmarks**, and **Carbon Footprint Analysis** — all following internationally recognized IWA/AWWA standards.
 
@@ -262,4 +262,3 @@ Copyright © 2026 [theub002](https://github.com/theub002) and [sumitmodanwal962]
 
 - **theub002** — [GitHub](https://github.com/theub002)
 - **sumitmodanwal962** — [GitHub](https://github.com/sumitmodanwal962)
-]]>
