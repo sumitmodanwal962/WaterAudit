@@ -2,6 +2,8 @@
 
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react"
 import { getMe, UserProfile } from "@/lib/api"
+import { auth } from "@/lib/firebase"
+import { onIdTokenChanged, signOut } from "firebase/auth"
 
 interface AuthContextType {
   user: UserProfile | null
@@ -39,30 +41,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
-    const stored = localStorage.getItem("wa_token")
-    if (stored) {
-      setToken(stored)
-      getMe()
-        .then(setUser)
-        .catch(() => {
-          localStorage.removeItem("wa_token")
-          setToken(null)
-          window.location.href = "/login"
-        })
-        .finally(() => setIsLoading(false))
-    } else {
+    const unsubscribe = onIdTokenChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        const currentToken = await firebaseUser.getIdToken()
+        localStorage.setItem("wa_token", currentToken)
+        setToken(currentToken)
+        try {
+          const me = await getMe()
+          setUser(me)
+        } catch (e) {
+          console.error("Failed to fetch user profile:", e)
+          setUser(null)
+        }
+      } else {
+        localStorage.removeItem("wa_token")
+        setToken(null)
+        setUser(null)
+      }
       setIsLoading(false)
-    }
+    })
+    return () => unsubscribe()
   }, [])
 
   const login = async (newToken: string) => {
+    // newToken is passed from Firebase login, or we just rely on onIdTokenChanged
     localStorage.setItem("wa_token", newToken)
     setToken(newToken)
-    const me = await getMe()
-    setUser(me)
+    try {
+      const me = await getMe()
+      setUser(me)
+    } catch (e) {
+      console.error("Failed to fetch user profile:", e)
+    }
   }
 
-  const logout = () => {
+  const logout = async () => {
+    await signOut(auth)
     localStorage.removeItem("wa_token")
     setToken(null)
     setUser(null)

@@ -2,11 +2,11 @@
 
 import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { 
   Bell, Settings, Droplets, ChevronDown, User, LogOut, 
   X, Menu, LayoutDashboard, FileText, BarChart3, HelpCircle,
-  Sun, Moon, Laptop
+  Sun, Moon, Laptop, Shield
 } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useAuth } from "@/contexts/AuthContext"
@@ -15,7 +15,6 @@ import { useTheme } from "next-themes"
 const navLinks = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/audits", label: "Audits", icon: FileText },
-  { href: "/dashboard/reports", label: "Reports", icon: BarChart3 },
   { href: "/dashboard/help", label: "Help", icon: HelpCircle },
 ]
 
@@ -25,7 +24,8 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
-  const { user, logout } = useAuth()
+  const router = useRouter()
+  const { user, logout, isLoading } = useAuth()
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -47,6 +47,16 @@ export default function DashboardLayout({
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.replace("/login")
+    }
+  }, [user, isLoading, router])
+
+  if (isLoading || !user) {
+    return <div className="min-h-screen flex items-center justify-center bg-background"><div className="animate-spin h-8 w-8 border-4 border-sky-500 border-t-transparent rounded-full" /></div>
+  }
+
   const toggleTheme = () => {
     if (theme === "light") setTheme("dark")
     else if (theme === "dark") setTheme("system")
@@ -66,8 +76,8 @@ export default function DashboardLayout({
             <Droplets className="h-5 w-5 text-white" />
           </div>
           <div className="hidden sm:flex flex-col">
-            <span className="text-lg font-bold leading-none text-foreground">AquaAudit</span>
-            <span className="text-[11px] font-medium text-muted-foreground mt-0.5">Water Conservation Platform</span>
+            <span className="text-lg font-bold leading-none text-foreground">WaterAudit</span>
+            <span className="text-[11px] font-medium text-muted-foreground mt-0.5">Water Auditing Platform</span>
           </div>
         </Link>
 
@@ -90,6 +100,19 @@ export default function DashboardLayout({
               </Link>
             )
           })}
+          {user?.role === "superadmin" && (
+            <Link
+              href="/dashboard/admin"
+              className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all ${
+                pathname.startsWith("/dashboard/admin")
+                  ? "bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400"
+                  : "text-muted-foreground hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+              }`}
+            >
+              <Shield className="h-4 w-4" />
+              Admin
+            </Link>
+          )}
         </nav>
 
         {/* Right side */}

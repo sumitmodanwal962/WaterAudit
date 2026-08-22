@@ -1,7 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/contexts/AuthContext"
 import { motion, AnimatePresence } from "framer-motion"
+import Link from "next/link"
 import { Droplets } from "lucide-react"
 import { LoginForm } from "./login-form"
 import { RegisterForm } from "./register-form"
@@ -11,6 +14,18 @@ type AuthMode = "login" | "register" | "tabs"
 
 export function AuthCard({ mode = "tabs" }: { mode?: AuthMode }) {
   const [activeTab, setActiveTab] = useState<AuthTab>(mode === "register" ? "register" : "login")
+  const router = useRouter()
+  const { user, isLoading } = useAuth()
+
+  useEffect(() => {
+    if (!isLoading && user) {
+      router.replace("/dashboard")
+    }
+  }, [user, isLoading, router])
+
+  if (isLoading || user) {
+    return <div className="min-h-[50vh] flex items-center justify-center"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" /></div>
+  }
 
   return (
     <motion.div
@@ -87,6 +102,34 @@ export function AuthCard({ mode = "tabs" }: { mode?: AuthMode }) {
           </AnimatePresence>
         </div>
       </div>
+
+      {/* Navigation Links (when not in tabs mode) */}
+      {mode === "login" && (
+        <motion.div 
+          className="text-center mt-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+        >
+          <span className="text-muted-foreground">New User? </span>
+          <Link href="/register" className="text-primary font-semibold hover:underline">
+            Register here
+          </Link>
+        </motion.div>
+      )}
+      {mode === "register" && (
+        <motion.div 
+          className="text-center mt-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+        >
+          <span className="text-muted-foreground">Already have an account? </span>
+          <Link href="/login" className="text-primary font-semibold hover:underline">
+            Log in here
+          </Link>
+        </motion.div>
+      )}
 
       {/* Footer text */}
       <motion.p

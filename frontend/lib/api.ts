@@ -40,26 +40,11 @@ async function apiFetch<T>(path: string, options: FetchOptions = {}): Promise<T>
 
 // ── Auth ────────────────────────────────────────────────────────
 
-export async function login(email: string, password: string): Promise<{ access_token: string; token_type: string }> {
-  const form = new URLSearchParams();
-  form.append("username", email);
-  form.append("password", password);
-
-  const res = await fetch(`${API_URL}/api/auth/login`, {
-    method: "POST",
-    body: form,
-  });
-
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(body.detail || "Login failed");
-  }
-  return res.json();
-}
+// Login is now handled directly by Firebase via AuthContext
 
 export async function register(data: {
   email: string;
-  password: string;
+  firebase_uid: string;
   user_type?: string;
   full_name?: string;
   gender?: string;
@@ -74,20 +59,27 @@ export async function register(data: {
 
 // ── User ────────────────────────────────────────────────────────
 
-export async function getMe() {
-  return apiFetch<UserProfile>("/api/users/me");
+export async function getMe(): Promise<UserProfile | null> {
+  try {
+    return await apiFetch<UserProfile>("/api/users/me");
+  } catch (error: any) {
+    if (
+      error.message.includes("404") || 
+      error.message.includes("User not found") ||
+      error.message.includes("Email not verified") ||
+      error.message.includes("403")
+    ) {
+      return null;
+    }
+    throw error;
+  }
 }
 
 export async function updateProfile(data: Partial<UserProfile>) {
   return apiFetch<UserProfile>("/api/users/me", { method: "PUT", body: JSON.stringify(data) });
 }
 
-export async function changePassword(current_password: string, new_password: string) {
-  return apiFetch("/api/users/me/change-password", {
-    method: "POST",
-    body: JSON.stringify({ current_password, new_password }),
-  });
-}
+// Change password is now handled directly by Firebase SDK
 
 // ── Projects ─────────────────────────────────────────────────────
 
@@ -124,11 +116,40 @@ export async function saveDataInput(projectId: number, data: Partial<DataInput>)
   });
 }
 
+// ── Admin Management ─────────────────────────────────────────────
+
+export async function getAllUsers(): Promise<UserProfile[]> {
+  return apiFetch<UserProfile[]>("/api/admin/users");
+}
+
+export async function updateAdminStatus(userId: number, admin_status: string): Promise<UserProfile> {
+  return apiFetch<UserProfile>(`/api/admin/users/${userId}/status`, {
+    method: "PUT",
+    body: JSON.stringify({ admin_status }),
+  });
+}
+
+export async function updateUserRole(userId: number, role: string): Promise<UserProfile> {
+  return apiFetch<UserProfile>(`/api/admin/users/${userId}/role`, {
+    method: "PUT",
+    body: JSON.stringify({ role }),
+  });
+}
+
+export async function updateUserAreas(userId: number, assigned_areas: string[]): Promise<UserProfile> {
+  return apiFetch<UserProfile>(`/api/admin/users/${userId}/areas`, {
+    method: "PUT",
+    body: JSON.stringify({ assigned_areas }),
+  });
+}
+
 // ── Types ────────────────────────────────────────────────────────
 
 export interface UserProfile {
   id: number;
   email: string;
+  role: string;
+  admin_status: string;
   is_active: boolean;
   user_type: string;
   full_name?: string;
@@ -138,6 +159,7 @@ export interface UserProfile {
   contact?: string;
   address?: string;
   location?: string;
+  assigned_areas?: string[];
   created_at?: string;
 }
 

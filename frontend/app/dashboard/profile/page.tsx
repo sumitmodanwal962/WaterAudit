@@ -7,7 +7,9 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/contexts/AuthContext"
-import { updateProfile, changePassword } from "@/lib/api"
+import { updateProfile } from "@/lib/api"
+import { auth } from "@/lib/firebase"
+import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth"
 
 function Toast({ type, message, onClose }: { type: "success" | "error"; message: string; onClose: () => void }) {
   useEffect(() => { const t = setTimeout(onClose, 4000); return () => clearTimeout(t) }, [onClose])
@@ -62,7 +64,11 @@ export default function ProfilePage() {
       return setToast({ type: "error", message: "New password must be at least 8 characters" })
     setPwSaving(true)
     try {
-      await changePassword(pwForm.current, pwForm.next)
+      const currentUser = auth.currentUser;
+      if (!currentUser || !currentUser.email) throw new Error("Not authenticated");
+      const credential = EmailAuthProvider.credential(currentUser.email, pwForm.current);
+      await reauthenticateWithCredential(currentUser, credential);
+      await updatePassword(currentUser, pwForm.next);
       setPwForm({ current: "", next: "", confirm: "" })
       setToast({ type: "success", message: "Password changed successfully!" })
     } catch (e: any) {
@@ -104,9 +110,9 @@ export default function ProfilePage() {
         <div className="text-center sm:text-left">
           <h2 className="text-xl font-bold text-[#0f172a]">{user?.full_name || "No name set"}</h2>
           <p className="text-slate-500 text-sm">{user?.email}</p>
-          <span className={`mt-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${user?.user_type === "organisation" ? "bg-violet-100 text-violet-700" : "bg-sky-100 text-sky-700"}`}>
+          <span className={`mt-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${user?.role === "admin" ? "bg-violet-100 text-violet-700" : "bg-sky-100 text-sky-700"}`}>
             <Shield className="h-3 w-3" />
-            {user?.user_type === "organisation" ? "Organisation" : "Individual"}
+            {user?.role === "admin" ? "Admin" : "User"}
           </span>
         </div>
         <div className="sm:ml-auto text-sm text-slate-400 text-center sm:text-right">

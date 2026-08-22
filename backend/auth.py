@@ -1,34 +1,27 @@
 import os
-from datetime import datetime, timedelta, timezone
-import bcrypt
-from jose import JWTError, jwt
+import firebase_admin
+from firebase_admin import credentials, auth
 from dotenv import load_dotenv
 
 load_dotenv()
 
-SECRET_KEY = os.getenv("SECRET_KEY", "fallback_secret_key_do_not_use_in_prod")
-ALGORITHM = os.getenv("ALGORITHM", "HS256")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
-
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    try:
-        password_byte_enc = plain_password.encode('utf-8')
-        hashed_password_byte_enc = hashed_password.encode('utf-8')
-        return bcrypt.checkpw(password_byte_enc, hashed_password_byte_enc)
-    except ValueError:
-        return False
-
-def get_password_hash(password: str) -> str:
-    password_byte_enc = password.encode('utf-8')
-    hashed = bcrypt.hashpw(password_byte_enc, bcrypt.gensalt())
-    return hashed.decode('utf-8')
-
-def create_access_token(data: dict, expires_delta: timedelta | None = None):
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.now(timezone.utc) + expires_delta
+# Initialize Firebase Admin
+if not firebase_admin._apps:
+    # Use the credentials file located in the backend directory
+    cred_path = os.path.join(os.path.dirname(__file__), "firebase-credentials.json")
+    if os.path.exists(cred_path):
+        cred = credentials.Certificate(cred_path)
+        firebase_admin.initialize_app(cred)
     else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=15)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
+        print("WARNING: firebase-credentials.json not found. Firebase Admin SDK not initialized.")
+
+def verify_firebase_token(token: str) -> dict:
+    """
+    Verifies a Firebase ID token and returns the decoded token payload.
+    Raises ValueError if the token is invalid or expired.
+    """
+    try:
+        decoded_token = auth.verify_id_token(token)
+        return decoded_token
+    except Exception as e:
+        raise ValueError(f"Invalid Firebase token: {e}")

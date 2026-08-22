@@ -1,12 +1,14 @@
-from fastapi import FastAPI, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi import FastAPI, Depends, HTTPException, status, BackgroundTasks
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from datetime import timedelta
 from typing import List
+from pydantic import BaseModel
 
 import models
 import auth
+import email_service
 from database import engine, get_db
 
 # Create all tables (will not modify existing tables, only creates missing ones)
@@ -23,41 +25,66 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
+security = HTTPBearer()
 
 
 # ── Helper: get current user from token ───────────────────────────
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> models.User:
+def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security), db: Session = Depends(get_db)) -> models.User:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = auth.jwt.decode(token, auth.SECRET_KEY, algorithms=[auth.ALGORITHM])
-        email: str = payload.get("sub")
-        if email is None:
+        token = credentials.credentials
+        payload = auth.verify_firebase_token(token)
+        firebase_uid: str = payload.get("uid")
+        email_verified = payload.get("email_verified", False)
+        if firebase_uid is None:
             raise credentials_exception
-    except auth.JWTError:
+        if not email_verified:
+            raise HTTPException(status_code=403, detail="Email not verified. Check your inbox.")
+    except ValueError:
         raise credentials_exception
 
-    user = db.query(models.User).filter(models.User.email == email).first()
+    user = db.query(models.User).filter(models.User.firebase_uid == firebase_uid).first()
     if user is None:
-        raise credentials_exception
+        raise HTTPException(status_code=404, detail="User not found in database")
+    if user.role in ["admin", "superadmin"]:
+        if user.admin_status == "pending":
+            raise HTTPException(status_code=403, detail="Account pending approval")
+        if user.admin_status == "rejected":
+            raise HTTPException(status_code=403, detail="Admin Access Denied")
+
     return user
+
+
+# ── Helper: get admin user ────────────────────────────────────────
+def get_admin_user(current_user: models.User = Depends(get_current_user)) -> models.User:
+    if current_user.role not in ["admin", "superadmin"]:
+        raise HTTPException(status_code=403, detail="Not enough privileges")
+    return current_user
+
+
+# ── Helper: get superadmin user ───────────────────────────────────
+def get_superadmin_user(current_user: models.User = Depends(get_current_user)) -> models.User:
+    if current_user.role != "superadmin":
+        raise HTTPException(status_code=403, detail="Superadmin privileges required")
+    return current_user
 
 
 # ── Register ──────────────────────────────────────────────────────
 @app.post("/api/auth/register", response_model=models.UserResponse)
-def register_user(user: models.UserCreate, db: Session = Depends(get_db)):
+def register_user(user: models.UserCreate, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     db_user = db.query(models.User).filter(models.User.email == user.email).first()
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
 
-    hashed_password = auth.get_password_hash(user.password)
     new_user = models.User(
         email=user.email,
-        hashed_password=hashed_password,
+        firebase_uid=user.firebase_uid,
+        role=user.role,
+        admin_status="pending" if user.role == "admin" else "approved",
         user_type=user.user_type,
         full_name=user.full_name,
         gender=user.gender,
@@ -71,26 +98,20 @@ def register_user(user: models.UserCreate, db: Session = Depends(get_db)):
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
+
+    if new_user.role == "admin":
+        superadmins = db.query(models.User).filter(models.User.role == "superadmin").all()
+        superadmin_emails = [sa.email for sa in superadmins]
+        if superadmin_emails:
+            background_tasks.add_task(
+                email_service.send_new_admin_notification, 
+                superadmin_emails, 
+                new_user.email, 
+                new_user.full_name or "Unknown Name"
+            )
+
     return new_user
 
-
-# ── Login ─────────────────────────────────────────────────────────
-@app.post("/api/auth/login", response_model=models.Token)
-def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    user = db.query(models.User).filter(models.User.email == form_data.username).first()
-
-    if not user or not auth.verify_password(form_data.password, user.hashed_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect Username or Password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    access_token_expires = timedelta(minutes=auth.ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = auth.create_access_token(
-        data={"sub": user.email}, expires_delta=access_token_expires
-    )
-    return {"access_token": access_token, "token_type": "bearer"}
 
 
 # ── Get Current User ──────────────────────────────────────────────
@@ -113,19 +134,6 @@ def update_profile(
     return current_user
 
 
-# ── Change Password ───────────────────────────────────────────────
-@app.post("/api/users/me/change-password")
-def change_password(
-    data: models.PasswordChange,
-    current_user: models.User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    if not auth.verify_password(data.current_password, current_user.hashed_password):
-        raise HTTPException(status_code=400, detail="Current password is incorrect")
-    current_user.hashed_password = auth.get_password_hash(data.new_password)
-    db.commit()
-    return {"message": "Password updated successfully"}
-
 
 # ── Users: Delete Account ─────────────────────────────────────────
 @app.delete("/api/users/me", status_code=204)
@@ -144,9 +152,20 @@ def list_projects(
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    from sqlalchemy import or_
+    
+    if current_user.role == "superadmin":
+        return db.query(models.Project).order_by(models.Project.updated_at.desc()).all()
+
     projects = (
         db.query(models.Project)
-        .filter(models.Project.owner_id == current_user.id)
+        .join(models.User, models.Project.owner_id == models.User.id)
+        .filter(
+            or_(
+                models.Project.owner_id == current_user.id,
+                (models.Project.status == "completed") & (models.User.role == "admin")
+            )
+        )
         .order_by(models.Project.updated_at.desc())
         .all()
     )
@@ -160,6 +179,13 @@ def create_project(
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    if current_user.role == "admin":
+        if not project.location or project.location not in current_user.assigned_areas:
+            raise HTTPException(
+                status_code=403, 
+                detail="Admins can only create projects in their assigned areas."
+            )
+
     new_project = models.Project(
         owner_id=current_user.id,
         **project.model_dump(),
@@ -233,17 +259,17 @@ def get_data_input(
     return data_input
 
 
-# ── Data Input: Save Progress ─────────────────────────────────────
+# ── Data Input: Save Progress (ADMIN ONLY) ────────────────────────
 @app.post("/api/projects/{project_id}/data-input", response_model=models.DataInputResponse)
 def save_data_input(
     project_id: int,
     data: models.DataInputCreate,
-    current_user: models.User = Depends(get_current_user),
+    current_admin: models.User = Depends(get_admin_user),
     db: Session = Depends(get_db),
 ):
     project = db.query(models.Project).filter(
         models.Project.id == project_id,
-        models.Project.owner_id == current_user.id
+        models.Project.owner_id == current_admin.id
     ).first()
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
@@ -265,3 +291,88 @@ def save_data_input(
     db.commit()
     db.refresh(db_data)
     return db_data
+
+
+# ── Superadmin: Manage Users ──────────────────────────────────────
+class AdminStatusUpdate(BaseModel):
+    admin_status: str
+
+class RoleUpdate(BaseModel):
+    role: str
+
+@app.get("/api/admin/users", response_model=List[models.UserResponse])
+def get_all_users(
+    current_superadmin: models.User = Depends(get_superadmin_user),
+    db: Session = Depends(get_db),
+):
+    return db.query(models.User).order_by(models.User.created_at.desc()).all()
+
+@app.put("/api/admin/users/{user_id}/status", response_model=models.UserResponse)
+def update_admin_status(
+    user_id: int,
+    status_update: AdminStatusUpdate,
+    current_superadmin: models.User = Depends(get_superadmin_user),
+    db: Session = Depends(get_db),
+):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if status_update.admin_status not in ["pending", "approved", "rejected"]:
+        raise HTTPException(status_code=400, detail="Invalid status")
+
+    user.admin_status = status_update.admin_status
+    db.commit()
+    db.refresh(user)
+    return user
+
+@app.put("/api/admin/users/{user_id}/role", response_model=models.UserResponse)
+def update_user_role(
+    user_id: int,
+    role_update: RoleUpdate,
+    background_tasks: BackgroundTasks,
+    current_superadmin: models.User = Depends(get_superadmin_user),
+    db: Session = Depends(get_db),
+):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if role_update.role not in ["user", "admin", "superadmin"]:
+        raise HTTPException(status_code=400, detail="Invalid role")
+
+    old_role = user.role
+    user.role = role_update.role
+    if user.role in ["admin", "superadmin"]:
+        user.admin_status = "approved"  # Auto-approve if manually promoted
+    else:
+        user.admin_status = "approved"  # normal users are approved
+        
+    db.commit()
+    db.refresh(user)
+
+    # Send notification if access revoked
+    if old_role in ["admin", "superadmin"] and role_update.role == "user":
+        background_tasks.add_task(email_service.send_access_revoked_notification, user.email, old_role)
+
+    return user
+
+
+class AreasUpdate(BaseModel):
+    assigned_areas: List[str]
+
+@app.put("/api/admin/users/{user_id}/areas", response_model=models.UserResponse)
+def update_user_areas(
+    user_id: int,
+    areas_update: AreasUpdate,
+    current_superadmin: models.User = Depends(get_superadmin_user),
+    db: Session = Depends(get_db),
+):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user.assigned_areas = areas_update.assigned_areas
+    db.commit()
+    db.refresh(user)
+    return user

@@ -24,3 +24,11 @@ venv.bak/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Firebase credentials
+firebase-credentials.json
+
+#services
+delete_user.py
+email_service.py
+scratch.py

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react"
 import {
-  Droplets, Building2, Factory, Home, FolderPlus, Search,
+  Droplets, Building2, Factory, Home, Search,
   MapPin, Calendar, ChevronRight, Trash2, RefreshCw, AlertCircle,
 } from "lucide-react"
 import Link from "next/link"
@@ -54,7 +54,7 @@ function SkeletonCard() {
   )
 }
 
-export default function DashboardPage() {
+export default function AuditsPage() {
   const { user, isLoading: authLoading } = useAuth()
   const router = useRouter()
 
@@ -89,7 +89,7 @@ export default function DashboardPage() {
   const handleDelete = async (e: React.MouseEvent, id: number) => {
     e.preventDefault()
     e.stopPropagation()
-    if (!confirm("Delete this project? This cannot be undone.")) return
+    if (!confirm("Delete this official project? This cannot be undone.")) return
     setDeletingId(id)
     try {
       await deleteProject(id)
@@ -101,12 +101,6 @@ export default function DashboardPage() {
     }
   }
 
-  // Stats
-  const total = projects.length
-  const commercial = projects.filter(p => p.project_type === "commercial").length
-  const industrial = projects.filter(p => p.project_type === "industrial").length
-  const residential = projects.filter(p => p.project_type === "residential").length
-
   // Filtered list
   const filtered = projects.filter(p => {
     const matchesSearch =
@@ -116,17 +110,7 @@ export default function DashboardPage() {
     return matchesSearch && matchesFilter
   })
 
-  const myProjects = filtered.filter(p => p.owner_id === user?.id)
   const publicProjects = filtered.filter(p => p.owner_id !== user?.id)
-
-  const greeting = (() => {
-    const h = new Date().getHours()
-    if (h < 12) return "Good morning"
-    if (h < 17) return "Good afternoon"
-    return "Good evening"
-  })()
-
-  const displayName = user?.full_name?.split(" ")[0] || user?.email?.split("@")[0] || "there"
 
   return (
     <div className="space-y-10">
@@ -134,9 +118,9 @@ export default function DashboardPage() {
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight text-[#0f172a] mb-1">
-            {greeting}, {displayName} 👋
+            Official Public Audits 📋
           </h1>
-          <p className="text-slate-500 text-lg">Manage and monitor your water audit projects</p>
+          <p className="text-slate-500 text-lg">Browse verified water audits completed by administrators</p>
         </div>
         <button
           onClick={fetchProjects}
@@ -147,76 +131,43 @@ export default function DashboardPage() {
         </button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
-        {[
-          { label: "Total Projects", value: total, icon: Droplets, bg: "bg-sky-100", color: "text-[#0284c7]" },
-          { label: "Commercial", value: commercial, icon: Building2, bg: "bg-emerald-100", color: "text-emerald-600" },
-          { label: "Industrial", value: industrial, icon: Factory, bg: "bg-slate-100", color: "text-slate-600" },
-          { label: "Residential", value: residential, icon: Home, bg: "bg-violet-100", color: "text-violet-600" },
-        ].map(({ label, value, icon: Icon, bg, color }) => (
-          <div key={label} className="flex items-center gap-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow">
-            <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl ${bg}`}>
-              <Icon className={`h-7 w-7 ${color}`} />
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-[#0f172a]">
-                {loading ? <span className="inline-block h-8 w-8 bg-slate-200 rounded animate-pulse" /> : value}
-              </div>
-              <div className="text-sm font-medium text-slate-500">{label}</div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Create New Project */}
-      <Link
-        href="/dashboard/create-project"
-        className="flex w-full flex-col items-center justify-center gap-4 rounded-3xl border-2 border-dashed border-slate-200 bg-white py-14 text-center hover:border-[#0284c7] hover:bg-sky-50/50 transition-all group shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0284c7] focus:ring-offset-2"
-      >
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-sky-100 group-hover:bg-sky-200 group-hover:scale-105 transition-all shadow-sm shadow-sky-100">
-          <FolderPlus className="h-8 w-8 text-[#0284c7]" />
-        </div>
-        <div>
-          <h3 className="text-xl font-bold text-[#0f172a] mb-1 group-hover:text-[#0284c7] transition-colors">
-            Create New Project
-          </h3>
-          <p className="text-slate-500">Start a new water audit project</p>
-        </div>
-      </Link>
-
-      {/* Existing Projects */}
       <div className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-2xl font-bold text-[#0f172a]">My Audits</h2>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             {/* Search */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
-                placeholder="Search projects..."
+                placeholder="Search city, location, or title..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="h-10 w-full sm:w-[240px] rounded-full border border-slate-200 bg-white pl-10 pr-4 text-sm outline-none focus:border-[#0284c7] focus:ring-1 focus:ring-[#0284c7] transition-all shadow-sm"
+                className="h-10 w-full sm:w-[280px] rounded-full border border-slate-200 bg-white pl-10 pr-4 text-sm outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all shadow-sm"
               />
             </div>
             {/* Filter tabs */}
             <div className="flex rounded-full border border-slate-200 bg-white p-1 shadow-sm overflow-x-auto gap-0.5">
-              {(["all", "commercial", "industrial", "residential"] as FilterType[]).map(f => (
+              {(
+                ["all", "commercial", "industrial", "residential"] as FilterType[]
+              ).map(f => (
                 <button
                   key={f}
                   onClick={() => setFilter(f)}
                   className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium capitalize transition-all whitespace-nowrap ${
                     filter === f
-                      ? "bg-[#0284c7] text-white shadow-sm"
+                      ? "bg-amber-500 text-white shadow-sm"
                       : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
-                  {f === "all" ? <Droplets className="h-3.5 w-3.5" /> :
-                   f === "commercial" ? <Building2 className="h-3.5 w-3.5" /> :
-                   f === "industrial" ? <Factory className="h-3.5 w-3.5" /> :
-                   <Home className="h-3.5 w-3.5" />}
+                  {f === "all" ? (
+                    <Droplets className="h-3.5 w-3.5" />
+                  ) : f === "commercial" ? (
+                    <Building2 className="h-3.5 w-3.5" />
+                  ) : f === "industrial" ? (
+                    <Factory className="h-3.5 w-3.5" />
+                  ) : (
+                    <Home className="h-3.5 w-3.5" />
+                  )}
                   {f === "all" ? "All" : f.charAt(0).toUpperCase() + f.slice(1)}
                 </button>
               ))}
@@ -233,17 +184,29 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* My Projects Grid */}
-        {myProjects.length > 0 && (
-          <div className="mb-10">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {myProjects.map(project => (
-                <Link
-                  key={project.id}
-                  href={`/dashboard/projects/${project.id}`}
-                className="group flex flex-col justify-between rounded-3xl border border-slate-200 bg-white p-7 shadow-sm hover:shadow-lg hover:border-sky-200 hover:-translate-y-0.5 transition-all cursor-pointer relative"
+        {/* Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-20">
+          {loading ? (
+            Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)
+          ) : publicProjects.length === 0 ? (
+            <div className="col-span-full flex flex-col items-center justify-center py-20 text-slate-400">
+              <Droplets className="h-12 w-12 mb-4 opacity-30" />
+              <p className="text-lg font-medium">
+                {search || filter !== "all" ? "No official audits match your filter" : "No official audits yet"}
+              </p>
+              <p className="text-sm mt-1">
+                {search || filter !== "all"
+                  ? "Try clearing your search or filter"
+                  : "Completed official audits will appear here"}
+              </p>
+            </div>
+          ) : (
+            publicProjects.map(project => (
+              <Link
+                key={project.id}
+                href={`/dashboard/projects/${project.id}`}
+                className="group flex flex-col justify-between rounded-3xl border-2 border-amber-200/60 bg-amber-50/30 p-7 shadow-sm hover:shadow-lg hover:border-amber-300 hover:-translate-y-0.5 transition-all cursor-pointer relative"
               >
-                {/* Type badge */}
                 {project.project_type && (
                   <span className={`absolute right-6 top-6 flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${typeColor(project.project_type)}`}>
                     {typeIcon(project.project_type)}
@@ -251,10 +214,11 @@ export default function DashboardPage() {
                   </span>
                 )}
 
-
-
                 <div className="mb-6 pr-28">
-                  <h3 className="mb-2 text-xl font-bold leading-tight text-[#0f172a] line-clamp-2 group-hover:text-[#0284c7] transition-colors">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-[10px] font-bold rounded-md uppercase tracking-wider">Verified</span>
+                  </div>
+                  <h3 className="mb-2 text-xl font-bold leading-tight text-[#0f172a] line-clamp-2 group-hover:text-amber-700 transition-colors">
                     {project.title}
                   </h3>
                   {project.location && (
@@ -277,36 +241,26 @@ export default function DashboardPage() {
                       {timeAgo(project.updated_at)}
                     </div>
                     <div className="flex items-center gap-2">
-                      {/* Delete button */}
-                      <button
-                        onClick={e => handleDelete(e, project.id)}
-                        disabled={deletingId === project.id}
-                        className="opacity-0 group-hover:opacity-100 flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-red-500 hover:bg-red-50 transition-all"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                        <span className="hidden sm:inline">{deletingId === project.id ? "Deleting…" : "Delete"}</span>
-                      </button>
-                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-sky-50 text-[#0284c7] opacity-0 group-hover:opacity-100 transition-opacity">
+                      {user?.role === "superadmin" && (
+                        <button
+                          onClick={e => handleDelete(e, project.id)}
+                          disabled={deletingId === project.id}
+                          className="opacity-0 group-hover:opacity-100 flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-red-500 hover:bg-red-50 transition-all"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                          <span className="hidden sm:inline">Delete</span>
+                        </button>
+                      )}
+                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-100 text-amber-600 opacity-0 group-hover:opacity-100 transition-opacity">
                         <ChevronRight className="h-4 w-4" />
                       </div>
                     </div>
                   </div>
                 </div>
               </Link>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {!loading && filtered.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20 text-slate-400">
-            <Droplets className="h-12 w-12 mb-4 opacity-30" />
-            <p className="text-lg font-medium">
-              {search || filter !== "all" ? "No projects match your filter" : "No projects yet"}
-            </p>
-          </div>
-        )}
-
+            ))
+          )}
+        </div>
       </div>
     </div>
   )

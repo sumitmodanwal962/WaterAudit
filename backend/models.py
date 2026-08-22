@@ -1,7 +1,7 @@
 from sqlalchemy import Boolean, Column, Integer, String, DateTime, ForeignKey, func, JSON
 from sqlalchemy.orm import relationship
 from pydantic import BaseModel, EmailStr
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from datetime import datetime
 from database import Base
 
@@ -13,11 +13,14 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
-    hashed_password = Column(String, nullable=False)
+    firebase_uid = Column(String, unique=True, index=True, nullable=False)
+    role = Column(String, default="user")
+    admin_status = Column(String, default="pending")
     is_active = Column(Boolean, default=True)
 
     # Profile fields
     user_type = Column(String, default="individual")  # "individual" or "organisation"
+    assigned_areas = Column(JSON, default=[])
     full_name = Column(String, nullable=True)
     gender = Column(String, nullable=True)
     org_name = Column(String, nullable=True)
@@ -78,7 +81,8 @@ class DataInput(Base):
 
 class UserCreate(BaseModel):
     email: EmailStr
-    password: str
+    firebase_uid: str
+    role: str = "user"
     user_type: str = "individual"
     full_name: Optional[str] = None
     gender: Optional[str] = None
@@ -99,14 +103,14 @@ class UserUpdate(BaseModel):
     location: Optional[str] = None
 
 
-class PasswordChange(BaseModel):
-    current_password: str
-    new_password: str
 
 
 class UserResponse(BaseModel):
     id: int
     email: EmailStr
+    firebase_uid: str
+    role: str
+    admin_status: str
     is_active: bool
     user_type: str
     full_name: Optional[str] = None
@@ -116,6 +120,7 @@ class UserResponse(BaseModel):
     contact: Optional[str] = None
     address: Optional[str] = None
     location: Optional[str] = None
+    assigned_areas: List[str] = []
     created_at: Optional[datetime] = None
 
     class Config:
