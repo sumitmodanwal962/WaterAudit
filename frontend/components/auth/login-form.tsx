@@ -55,8 +55,9 @@ export function LoginForm() {
       if (err.code === "auth/invalid-credential" || err.message?.includes("auth/invalid-credential")) {
         setError("Invalid email or password.")
       } else {
-        // Fallback for other errors (stripping the 'Firebase: Error ' prefix if present)
-        setError(err.message?.replace("Firebase: Error ", "") || "An unexpected error occurred.")
+        let msg = err.message || "An unexpected error occurred."
+        msg = msg.replace(/^Firebase:\s*(Error\s*)?/, "").replace(/\(auth\/[a-zA-Z0-9-]+\)\.?/g, "").trim()
+        setError(msg || "An unexpected error occurred.")
       }
     } finally {
       setIsLoading(false)
@@ -108,7 +109,15 @@ export function LoginForm() {
       setSuccess("Login successful! Redirecting...")
       setTimeout(() => router.push("/dashboard"), 800)
     } catch (err: any) {
-      setError(err.message || "Google Sign-In failed.")
+      if (err.code === "auth/unauthorized-domain") {
+        setError("This domain is not authorized for Google Sign-In. Please add it to Firebase Console.")
+      } else if (err.code === "auth/popup-closed-by-user") {
+        setError("Google Sign-In was cancelled.")
+      } else {
+        let msg = err.message || "Google Sign-In failed."
+        msg = msg.replace(/^Firebase:\s*(Error\s*)?/, "").replace(/\(auth\/[a-zA-Z0-9-]+\)\.?/g, "").trim()
+        setError(msg || "Google Sign-In failed.")
+      }
     } finally {
       setIsLoading(false)
     }
