@@ -4,7 +4,7 @@ A comprehensive web platform for conducting water balance audits of urban water 
 
 ## ✨ Features
 
-- **User Authentication** — Secure JWT-based registration, login, and profile management
+- **User Authentication** — Secure authentication via Firebase (Google Sign-In, Email Verification, and Token Verification via Firebase Admin)
 - **Project Management** — Create, organize, and track multiple audit projects with metadata (scope, location, population, lead auditor)
 - **Guided Data Input** — Structured, category-wise data entry with built-in validation modals for every input parameter
 - **Data Validity Score (DVS)** — Weighted scoring engine across four categories:
@@ -35,6 +35,7 @@ A comprehensive web platform for conducting water balance audits of urban water 
 |---|---|
 | [Next.js 16](https://nextjs.org/) | React framework (App Router) |
 | [TypeScript](https://www.typescriptlang.org/) | Type-safe JavaScript |
+| [Firebase](https://firebase.google.com/) | Authentication & Identity |
 | [Tailwind CSS 4](https://tailwindcss.com/) | Utility-first styling |
 | [Radix UI](https://www.radix-ui.com/) | Accessible component primitives |
 | [Recharts](https://recharts.org/) | Charting / data visualization |
@@ -170,6 +171,23 @@ cd frontend
 # Install dependencies
 npm install
 
+# Configure environment variables
+# Create a .env.local file and add your Firebase config:
+```
+
+**`frontend/.env.local` configuration:**
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.firebasestorage.app
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=your_measurement_id
+```
+
+```bash
 # Start the development server
 npm run dev
 ```
