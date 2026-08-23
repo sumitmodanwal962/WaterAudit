@@ -110,7 +110,7 @@ export function LoginForm() {
       setTimeout(() => router.push("/dashboard"), 800)
     } catch (err: any) {
       if (err.code === "auth/unauthorized-domain") {
-        setError("This domain is not authorized for Google Sign-In. Please add it to Firebase Console.")
+        setError("Login from this domain is not authorized.")
       } else if (err.code === "auth/popup-closed-by-user") {
         setError("Google Sign-In was cancelled.")
       } else {
