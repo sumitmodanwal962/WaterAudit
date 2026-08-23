@@ -51,7 +51,9 @@ export default function ProfilePage() {
       await refreshUser()
       setToast({ type: "success", message: "Profile updated successfully!" })
     } catch (e: any) {
-      setToast({ type: "error", message: e.message || "Failed to update profile" })
+      let msg = e.message || "Failed to update profile"
+      msg = msg.replace(/^Firebase:\s*(Error\s*)?/, "").replace(/\(auth\/[a-zA-Z0-9-]+\)\.?/g, "").trim()
+      setToast({ type: "error", message: msg || "Failed to update profile" })
     } finally { setProfileSaving(false) }
   }
 
@@ -72,7 +74,9 @@ export default function ProfilePage() {
       setPwForm({ current: "", next: "", confirm: "" })
       setToast({ type: "success", message: "Password changed successfully!" })
     } catch (e: any) {
-      setToast({ type: "error", message: e.message || "Failed to change password" })
+      let msg = e.message || "Failed to change password"
+      msg = msg.replace(/^Firebase:\s*(Error\s*)?/, "").replace(/\(auth\/[a-zA-Z0-9-]+\)\.?/g, "").trim()
+      setToast({ type: "error", message: msg || "Failed to change password" })
     } finally { setPwSaving(false) }
   }
 

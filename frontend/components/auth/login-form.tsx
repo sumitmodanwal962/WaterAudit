@@ -73,7 +73,9 @@ export function LoginForm() {
         setUnverifiedUser(null)
         await signOut(auth)
       } catch (err: any) {
-        setError(err.message || "Failed to send email. Try again later.")
+        let msg = err.message || "Failed to send email. Try again later."
+        msg = msg.replace(/^Firebase:\s*(Error\s*)?/, "").replace(/\(auth\/[a-zA-Z0-9-]+\)\.?/g, "").trim()
+        setError(msg || "Failed to send email. Try again later.")
       }
     }
   }
