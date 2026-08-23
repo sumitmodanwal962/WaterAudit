@@ -2,13 +2,13 @@ import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDzsxzETtbMWLFzucnb4j1LbQGBddlgn6s",
-  authDomain: "wateraudit-f40e0.firebaseapp.com",
-  projectId: "wateraudit-f40e0",
-  storageBucket: "wateraudit-f40e0.firebasestorage.app",
-  messagingSenderId: "582543412426",
-  appId: "1:582543412426:web:cdcaf0dde8e2ca8c7d7833",
-  measurementId: "G-VH42QY34M6"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase (check if already initialized to avoid SSR issues)
