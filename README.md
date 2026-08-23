@@ -51,8 +51,7 @@ A comprehensive web platform for conducting water balance audits of urban water 
 | [SQLAlchemy](https://www.sqlalchemy.org/) | ORM & database toolkit |
 | [PostgreSQL](https://www.postgresql.org/) (via [Neon](https://neon.tech/)) | Cloud-hosted relational database |
 | [Pydantic](https://docs.pydantic.dev/) | Data validation & serialization |
-| [python-jose](https://github.com/mpdavis/python-jose) | JWT token handling |
-| [bcrypt](https://github.com/pyca/bcrypt) | Password hashing |
+| [Firebase Admin SDK](https://firebase.google.com/docs/admin/setup) | Token verification & Auth |
 
 ---
 
@@ -145,16 +144,15 @@ pip install -r requirements.txt
 
 # Configure environment variables
 cp .env.example .env
-# Edit .env with your database URL and a secure secret key
+# Edit .env with your database URL and place your Firebase credentials file
 ```
 
 **`.env` configuration:**
 ```env
 DATABASE_URL=postgresql://username:password@hostname/dbname
-SECRET_KEY=your_super_secret_key_here    # Generate with: openssl rand -hex 32
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
 ```
+
+*(Note: You must also place your `firebase-credentials.json` file in the `backend/` directory for the Firebase Admin SDK to initialize successfully).*
 
 ```bash
 # Start the backend server
