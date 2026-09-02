@@ -9,16 +9,35 @@ load_dotenv()
 
 _firebase_initialized = False
 
-# Initialize Firebase Admin
+# Initialize Firebase Admin SDK
+# Priority: 1) FIREBASE_CREDENTIALS_JSON env var (Render/production)
+#            2) firebase-credentials.json file (local dev)
+#            3) DEV mode fallback (no verification)
 if not firebase_admin._apps:
-    cred_path = os.path.join(os.path.dirname(__file__), "firebase-credentials.json")
-    if os.path.exists(cred_path):
-        cred = credentials.Certificate(cred_path)
+    cred = None
+
+    # Option 1: Read from environment variable (set this on Render)
+    firebase_creds_json = os.environ.get("FIREBASE_CREDENTIALS_JSON")
+    if firebase_creds_json:
+        try:
+            cred_dict = json.loads(firebase_creds_json)
+            cred = credentials.Certificate(cred_dict)
+            print("INFO: Firebase Admin SDK initialized from FIREBASE_CREDENTIALS_JSON env var.")
+        except Exception as e:
+            print(f"ERROR: Failed to parse FIREBASE_CREDENTIALS_JSON: {e}")
+
+    # Option 2: Read from local file (local dev)
+    if cred is None:
+        cred_path = os.path.join(os.path.dirname(__file__), "firebase-credentials.json")
+        if os.path.exists(cred_path):
+            cred = credentials.Certificate(cred_path)
+            print("INFO: Firebase Admin SDK initialized from firebase-credentials.json file.")
+
+    if cred is not None:
         firebase_admin.initialize_app(cred)
         _firebase_initialized = True
-        print("INFO: Firebase Admin SDK initialized successfully.")
     else:
-        print("WARNING: firebase-credentials.json not found. Running in DEV mode (no token signature verification).")
+        print("WARNING: No Firebase credentials found. Running in DEV mode (no token signature verification).")
 else:
     _firebase_initialized = True
 
