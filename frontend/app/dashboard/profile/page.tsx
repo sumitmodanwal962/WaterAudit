@@ -122,7 +122,7 @@ export default function ProfilePage() {
             <div className="mt-3">
               <button 
                 onClick={async () => {
-                  if (confirm("Request admin access? Your account will be locked pending superadmin approval.")) {
+                  if (confirm("Request Admin Approval? Your account will remain a user account until the request is approved.")) {
                     try {
                       await requestAdminAccess();
                       window.location.reload();
