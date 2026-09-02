@@ -1,0 +1,336 @@
+[1mdiff --git a/backend/database.py b/backend/database.py[m
+[1mindex 8263785..020f629 100644[m
+[1m--- a/backend/database.py[m
+[1m+++ b/backend/database.py[m
+[36m@@ -4,7 +4,7 @@[m [mfrom sqlalchemy.orm import declarative_base[m
+ from sqlalchemy.orm import sessionmaker[m
+ from dotenv import load_dotenv, find_dotenv[m
+ [m
+[31m-load_dotenv(find_dotenv(usecwd=True))[m
+[32m+[m[32mload_dotenv(find_dotenv(usecwd=True, fallback=True))[m
+ [m
+ DATABASE_URL = os.getenv("DATABASE_URL")[m
+ [m
+[1mdiff --git a/backend/email_service.py b/backend/email_service.py[m
+[1mindex 8865776..fdc13b3 100644[m
+[1m--- a/backend/email_service.py[m
+[1m+++ b/backend/email_service.py[m
+[36m@@ -1,67 +1,5 @@[m
+[31m-import smtplib[m
+[31m-from email.mime.text import MIMEText[m
+[31m-from email.mime.multipart import MIMEMultipart[m
+[31m-import os[m
+[31m-[m
+[31m-def _send_email(to_emails, subject, body_html):[m
+[31m-    sender_email = os.environ.get("SMTP_EMAIL")[m
+[31m-    sender_password = os.environ.get("SMTP_PASSWORD")[m
+[31m-    [m
+[31m-    if not sender_email or not sender_password:[m
+[31m-        print("WARNING: SMTP_EMAIL or SMTP_PASSWORD not configured. Email not sent.")[m
+[31m-        return[m
+[31m-[m
+[31m-    msg = MIMEMultipart()[m
+[31m-    msg['From'] = f"WaterAudit System <{sender_email}>"[m
+[31m-    msg['To'] = ", ".join(to_emails) if isinstance(to_emails, list) else to_emails[m
+[31m-    msg['Subject'] = subject[m
+[31m-[m
+[31m-    # Ensure noreply context and support email are included[m
+[31m-    footer = f"""[m
+[31m-    <hr style="border: none; border-top: 1px solid #eaeaea; margin-top: 30px; margin-bottom: 20px;" />[m
+[31m-    <p style="font-size: 12px; color: #666; text-align: center;">[m
+[31m-        This is a system-generated message. Please do not reply to this email.<br/>[m
+[31m-        For any support inquiries, please contact us at <a href="mailto:wateraudit.support@gmail.com">wateraudit.support@gmail.com</a>.[m
+[31m-    </p>[m
+[31m-    """[m
+[31m-    [m
+[31m-    msg.attach(MIMEText(body_html + footer, 'html'))[m
+[31m-    [m
+[31m-    try:[m
+[31m-        # Standard Gmail SMTP configuration[m
+[31m-        server = smtplib.SMTP('smtp.gmail.com', 587)[m
+[31m-        server.starttls()[m
+[31m-        server.login(sender_email, sender_password)[m
+[31m-        server.send_message(msg)[m
+[31m-        server.quit()[m
+[31m-        print(f"INFO: Successfully sent system email to {msg['To']}")[m
+[31m-    except Exception as e:[m
+[31m-        print(f"ERROR: Failed to send email: {e}")[m
+[31m-[m
+ def send_new_admin_notification(superadmin_emails, new_user_email, new_user_name):[m
+[31m-    subject = "Action Required: New Admin Request"[m
+[31m-    body = f"""[m
+[31m-    <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto;">[m
+[31m-        <h2 style="color: #0284c7;">New Admin Access Request</h2>[m
+[31m-        <p>Hello Superadmin,</p>[m
+[31m-        <p>A user has requested Admin privileges on the WaterAudit platform. Please review their details below:</p>[m
+[31m-        <div style="background-color: #f8fafc; padding: 15px; border-radius: 8px; margin: 20px 0;">[m
+[31m-            <p style="margin: 5px 0;"><strong>Name:</strong> {new_user_name}</p>[m
+[31m-            <p style="margin: 5px 0;"><strong>Email:</strong> {new_user_email}</p>[m
+[31m-        </div>[m
+[31m-        <p>You can approve or reject this request from the <a href="https://your-domain.com/dashboard/admin" style="color: #0284c7; font-weight: bold;">User Management Dashboard</a>.</p>[m
+[31m-    </div>[m
+[31m-    """[m
+[31m-    _send_email(superadmin_emails, subject, body)[m
+[32m+[m[32m    print(f"Mock email: New admin registered - {new_user_email} ({new_user_name}) sent to {superadmin_emails}")[m
+ [m
+ def send_access_revoked_notification(user_email, old_role):[m
+[31m-    subject = "Notice: Admin Access Revoked"[m
+[31m-    body = f"""[m
+[31m-    <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto;">[m
+[31m-        <h2 style="color: #ea580c;">Access Revoked</h2>[m
+[31m-        <p>Hello,</p>[m
+[31m-        <p>This is a notification that your <strong>{old_role.upper()}</strong> privileges on the WaterAudit platform have been revoked by a Superadmin.</p>[m
+[31m-        <p>Your account has been reverted to a standard user role. You can still log in and view your profile, but you no longer have access to admin features.</p>[m
+[31m-    </div>[m
+[31m-    """[m
+[31m-    _send_email([user_email], subject, body)[m
+[32m+[m[32m    print(f"Mock email: Access revoked for {user_email}, old role was {old_role}")[m
+[1mdiff --git a/backend/main.py b/backend/main.py[m
+[1mindex f2f87b0..a74dcdb 100644[m
+[1m--- a/backend/main.py[m
+[1m+++ b/backend/main.py[m
+[36m@@ -50,6 +50,11 @@[m [mdef get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit[m
+     user = db.query(models.User).filter(models.User.firebase_uid == firebase_uid).first()[m
+     if user is None:[m
+         raise HTTPException(status_code=404, detail="User not found in database")[m
+[32m+[m[32m    if user.role in ["admin", "superadmin"]:[m
+[32m+[m[32m        if user.admin_status == "pending":[m
+[32m+[m[32m            raise HTTPException(status_code=403, detail="Account pending approval")[m
+[32m+[m[32m        if user.admin_status == "rejected":[m
+[32m+[m[32m            raise HTTPException(status_code=403, detail="Admin Access Denied")[m
+ [m
+     return user[m
+ [m
+[36m@@ -58,10 +63,6 @@[m [mdef get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit[m
+ def get_admin_user(current_user: models.User = Depends(get_current_user)) -> models.User:[m
+     if current_user.role not in ["admin", "superadmin"]:[m
+         raise HTTPException(status_code=403, detail="Not enough privileges")[m
+[31m-    if current_user.role == "admin" and current_user.admin_status == "pending":[m
+[31m-        raise HTTPException(status_code=403, detail="Admin privileges pending approval")[m
+[31m-    if current_user.admin_status == "rejected":[m
+[31m-        raise HTTPException(status_code=403, detail="Admin Access Denied")[m
+     return current_user[m
+ [m
+ [m
+[36m@@ -133,35 +134,6 @@[m [mdef update_profile([m
+     return current_user[m
+ [m
+ [m
+[31m-# ── Users: Request Admin Access ───────────────────────────────────[m
+[31m-@app.post("/api/users/request-admin", response_model=models.UserResponse)[m
+[31m-def request_admin_access([m
+[31m-    background_tasks: BackgroundTasks,[m
+[31m-    current_user: models.User = Depends(get_current_user),[m
+[31m-    db: Session = Depends(get_db),[m
+[31m-):[m
+[31m-    if current_user.role != "user":[m
+[31m-        raise HTTPException(status_code=400, detail="Only standard users can request admin access.")[m
+[31m-    [m
+[31m-    current_user.role = "admin"[m
+[31m-    current_user.admin_status = "pending"[m
+[31m-    db.commit()[m
+[31m-    db.refresh(current_user)[m
+[31m-[m
+[31m-    # Notify Superadmins[m
+[31m-    superadmins = db.query(models.User).filter(models.User.role == "superadmin").all()[m
+[31m-    superadmin_emails = [sa.email for sa in superadmins][m
+[31m-    if superadmin_emails:[m
+[31m-        background_tasks.add_task([m
+[31m-            email_service.send_new_admin_notification, [m
+[31m-            superadmin_emails, [m
+[31m-            current_user.email, [m
+[31m-            current_user.full_name or "Unknown Name"[m
+[31m-        )[m
+[31m-[m
+[31m-    return current_user[m
+[31m-[m
+[31m-[m
+ [m
+ # ── Users: Delete Account ─────────────────────────────────────────[m
+ @app.delete("/api/users/me", status_code=204)[m
+[36m@@ -189,19 +161,15 @@[m [mdef list_projects([m
+     if current_user.role == "superadmin":[m
+         return db.query(models.Project).order_by(models.Project.updated_at.desc()).all()[m
+ [m
+[31m-    conditions = [[m
+[31m-        models.Project.owner_id == current_user.id,[m
+[31m-        (models.Project.status == "completed") & (models.User.role == "admin")[m
+[31m-    ][m
+[31m-    [m
+[31m-    # If the user is an admin, they should also see any project in their assigned areas[m
+[31m-    if current_user.role == "admin" and current_user.assigned_areas:[m
+[31m-        conditions.append(models.Project.location.in_(current_user.assigned_areas))[m
+[31m-[m
+     projects = ([m
+         db.query(models.Project)[m
+         .join(models.User, models.Project.owner_id == models.User.id)[m
+[31m-        .filter(or_(*conditions))[m
+[32m+[m[32m        .filter([m
+[32m+[m[32m            or_([m
+[32m+[m[32m                models.Project.owner_id == current_user.id,[m
+[32m+[m[32m                (models.Project.status == "completed") & (models.User.role == "admin")[m
+[32m+[m[32m            )[m
+[32m+[m[32m        )[m
+         .order_by(models.Project.updated_at.desc())[m
+         .all()[m
+     )[m
+[36m@@ -215,6 +183,12 @@[m [mdef create_project([m
+     current_user: models.User = Depends(get_current_user),[m
+     db: Session = Depends(get_db),[m
+ ):[m
+[32m+[m[32m    if current_user.role == "admin":[m
+[32m+[m[32m        if not project.location or project.location not in current_user.assigned_areas:[m
+[32m+[m[32m            raise HTTPException([m
+[32m+[m[32m                status_code=403,[m[41m [m
+[32m+[m[32m                detail="Admins can only create projects in their assigned areas."[m
+[32m+[m[32m            )[m
+ [m
+     new_project = models.Project([m
+         owner_id=current_user.id,[m
+[1mdiff --git a/frontend/app/dashboard/admin/page.tsx b/frontend/app/dashboard/admin/page.tsx[m
+[1mindex edc6838..b6af511 100644[m
+[1m--- a/frontend/app/dashboard/admin/page.tsx[m
+[1m+++ b/frontend/app/dashboard/admin/page.tsx[m
+[36m@@ -21,7 +21,7 @@[m [mexport default function AdminDashboardPage() {[m
+   const router = useRouter()[m
+   const [users, setUsers] = useState<UserProfile[]>([])[m
+   const [loading, setLoading] = useState(true)[m
+[31m-  const [toast, setToast] = useState<{ type: "success" | "error", message: string } | null>(null)[m
+[32m+[m[32m  const [toast, setToast] = useState<{type: "success" | "error", message: string} | null>(null)[m
+   const [editingAreasId, setEditingAreasId] = useState<number | null>(null)[m
+   const [tempAreas, setTempAreas] = useState<string>("")[m
+ [m
+[36m@@ -30,7 +30,7 @@[m [mexport default function AdminDashboardPage() {[m
+       router.replace("/dashboard")[m
+       return[m
+     }[m
+[31m-[m
+[32m+[m[41m    [m
+     if (user?.role === "superadmin") {[m
+       fetchUsers()[m
+     }[m
+[36m@@ -116,105 +116,106 @@[m [mexport default function AdminDashboardPage() {[m
+             <tbody className="divide-y divide-slate-100">[m
+               {users.map((u) => ([m
+                 <React.Fragment key={u.id}>[m
+[31m-                  <tr className="hover:bg-slate-50/50 transition-colors">[m
+[31m-                    <td className="px-6 py-4">[m
+[31m-                      <div className="font-semibold text-[#0f172a]">{u.full_name || "No name"}</div>[m
+[31m-                      <div className="text-slate-500">{u.email}</div>[m
+[31m-                      {u.role === "admin" && ([m
+[31m-                        <div className="mt-2 text-xs text-slate-500 flex items-center gap-1">[m
+[31m-                          <MapPin className="h-3 w-3" />[m
+[31m-                          {u.assigned_areas && u.assigned_areas.length > 0[m
+[31m-                            ? `Areas: ${u.assigned_areas.join(", ")}`[m
+[31m-                            : "No areas assigned"}[m
+[31m-                        </div>[m
+[31m-                      )}[m
+[31m-                    </td>[m
+[31m-                    <td className="px-6 py-4">[m
+[31m-                      <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${u.role === 'superadmin' ? 'bg-amber-100 text-amber-700' :[m
+[31m-                          u.role === 'admin' ? 'bg-violet-100 text-violet-700' :[m
+[31m-                            'bg-slate-100 text-slate-700'[m
+[31m-                        }`}>[m
+[31m-                        {u.role === 'superadmin' ? <ShieldAlert className="h-3 w-3" /> :[m
+[31m-                          u.role === 'admin' ? <ShieldCheck className="h-3 w-3" /> :[m
+[31m-                            <UserIcon className="h-3 w-3" />}[m
+[31m-                        {u.role.toUpperCase()}[m
+[31m-                      </span>[m
+[31m-                    </td>[m
+[31m-                    <td className="px-6 py-4">[m
+[31m-                      {u.role === "admin" && u.admin_status === "pending" ? ([m
+[31m-                        <span className="inline-flex rounded-full bg-orange-100 px-2.5 py-1 text-xs font-semibold text-orange-700">Pending Approval</span>[m
+[31m-                      ) : u.role === "admin" && u.admin_status === "rejected" ? ([m
+[31m-                        <span className="inline-flex rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-700">Rejected</span>[m
+[31m-                      ) : ([m
+[31m-                        <span className="inline-flex rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">Active</span>[m
+[31m-                      )}[m
+[31m-                    </td>[m
+[31m-                    <td className="px-6 py-4 text-right space-x-2">[m
+[31m-                      {u.id !== user?.id && ([m
+[31m-                        <>[m
+[31m-                          {/* Admin Approval Actions */}[m
+[31m-                          {u.role === "admin" && u.admin_status === "pending" && ([m
+[31m-                            <>[m
+[31m-                              <button onClick={() => handleUpdateStatus(u.id, "approved")} className="text-emerald-600 hover:text-emerald-800 font-medium text-sm px-2 py-1 bg-emerald-50 rounded-lg">[m
+[31m-                                Approve[m
+[31m-                              </button>[m
+[31m-                              <button onClick={() => handleUpdateStatus(u.id, "rejected")} className="text-red-600 hover:text-red-800 font-medium text-sm px-2 py-1 bg-red-50 rounded-lg">[m
+[31m-                                Reject[m
+[31m-                              </button>[m
+[31m-                            </>[m
+[31m-                          )}[m
+[31m-[m
+[31m-                          {/* Area Assignment Action */}[m
+[31m-                          {u.role === "admin" && ([m
+[31m-                            <button onClick={() => {[m
+[31m-                              setEditingAreasId(u.id);[m
+[31m-                              setTempAreas(u.assigned_areas?.join(", ") || "");[m
+[31m-                            }} className="text-blue-600 hover:text-blue-800 font-medium text-sm px-2 py-1 bg-blue-50 rounded-lg">[m
+[31m-                              Assign Areas[m
+[31m-                            </button>[m
+[31m-                          )}[m
+[31m-[m
+[31m-                          {/* Role Management Actions */}[m
+[31m-                          {u.role !== "superadmin" && ([m
+[31m-                            <button onClick={() => handleUpdateRole(u.id, "superadmin")} className="text-amber-600 hover:text-amber-800 font-medium text-sm px-2 py-1 bg-amber-50 rounded-lg">[m
+[31m-                              Make Superadmin[m
+[31m-                            </button>[m
+[31m-                          )}[m
+[31m-[m
+[31m-                          {u.role === "user" && ([m
+[31m-                            <button onClick={() => handleUpdateRole(u.id, "admin")} className="text-violet-600 hover:text-violet-800 font-medium text-sm px-2 py-1 bg-violet-50 rounded-lg">[m
+[31m-                              Make Admin[m
+[32m+[m[32m                <tr className="hover:bg-slate-50/50 transition-colors">[m
+[32m+[m[32m                  <td className="px-6 py-4">[m
+[32m+[m[32m                    <div className="font-semibold text-[#0f172a]">{u.full_name || "No name"}</div>[m
+[32m+[m[32m                    <div className="text-slate-500">{u.email}</div>[m
+[32m+[m[32m                    {u.role === "admin" && ([m
+[32m+[m[32m                      <div className="mt-2 text-xs text-slate-500 flex items-center gap-1">[m
+[32m+[m[32m                        <MapPin className="h-3 w-3" />[m[41m [m
+[32m+[m[32m                        {u.assigned_areas && u.assigned_areas.length > 0[m[41m [m
+[32m+[m[32m                          ? `Areas: ${u.assigned_areas.join(", ")}`[m[41m [m
+[32m+[m[32m                          : "No areas assigned"}[m
+[32m+[m[32m                      </div>[m
+[32m+[m[32m                    )}[m
+[32m+[m[32m                  </td>[m
+[32m+[m[32m                  <td className="px-6 py-4">[m
+[32m+[m[32m                    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${[m
+[32m+[m[32m                      u.role === 'superadmin' ? 'bg-amber-100 text-amber-700' :[m[41m [m
+[32m+[m[32m                      u.role === 'admin' ? 'bg-violet-100 text-violet-700' :[m[41m [m
+[32m+[m[32m                      'bg-slate-100 text-slate-700'[m
+[32m+[m[32m                    }`}>[m
+[32m+[m[32m                      {u.role === 'superadmin' ? <ShieldAlert className="h-3 w-3" /> :[m[41m [m
+[32m+[m[32m                       u.role === 'admin' ? <ShieldCheck className="h-3 w-3" /> :[m[41m [m
+[32m+[m[32m                       <UserIcon className="h-3 w-3" />}[m
+[32m+[m[32m                      {u.role.toUpperCase()}[m
+[32m+[m[32m                    </span>[m
+[32m+[m[32m                  </td>[m
+[32m+[m[32m                  <td className="px-6 py-4">[m
+[32m+[m[32m                    {u.role === "admin" && u.admin_status === "pending" ? ([m
+[32m+[m[32m                       <span className="inline-flex rounded-full bg-orange-100 px-2.5 py-1 text-xs font-semibold text-orange-700">Pending Approval</span>[m
+[32m+[m[32m                    ) : u.role === "admin" && u.admin_status === "rejected" ? ([m
+[32m+[m[32m                       <span className="inline-flex rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-700">Rejected</span>[m
+[32m+[m[32m                    ) : ([m
+[32m+[m[32m                       <span className="inline-flex rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">Active</span>[m
+[32m+[m[32m                    )}[m
+[32m+[m[32m                  </td>[m
+[32m+[m[32m                  <td className="px-6 py-4 text-right space-x-2">[m
+[32m+[m[32m                    {u.id !== user?.id && ([m
+[32m+[m[32m                      <>[m
+[32m+[m[32m                        {/* Admin Approval Actions */}[m
+[32m+[m[32m                        {u.role === "admin" && u.admin_status === "pending" && ([m
+[32m+[m[32m                          <>[m
+[32m+[m[32m                            <button onClick={() => handleUpdateStatus(u.id, "approved")} className="text-emerald-600 hover:text-emerald-800 font-medium text-sm px-2 py-1 bg-emerald-50 rounded-lg">[m
+[32m+[m[32m                              Approve[m
+                             </button>[m
+[31m-                          )}[m
+[31m-[m
+[31m-                          {(u.role === "admin" || u.role === "superadmin") && ([m
+[31m-                            <button onClick={() => handleUpdateRole(u.id, "user")} className="text-slate-600 hover:text-slate-800 font-medium text-sm px-2 py-1 bg-slate-100 rounded-lg">[m
+[31m-                              Revoke Access[m
+[32m+[m[32m                            <button onClick={() => handleUpdateStatus(u.id, "rejected")} className="text-red-600 hover:text-red-800 font-medium text-sm px-2 py-1 bg-red-50 rounded-lg">[m
+[32m+[m[32m                              Reject[m
+                             </button>[m
+[31m-                          )}[m
+[31m-              

@@ -126,20 +126,24 @@ export default function LandingPage() {
         </section>
       </main>
 
-      {/* Footer */}
+      {/* Footer / Contact */}
       <footer id="contact" className="border-t py-12 bg-muted/30">
         <div className="container mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2">
-            <Droplets className="w-5 h-5 text-primary" />
-            <span className="font-semibold text-lg">WaterAudit</span>
+          <div className="flex flex-col items-center md:items-start gap-1.5">
+            <div className="flex items-center gap-2">
+              <Droplets className="w-5 h-5 text-primary" />
+              <span className="font-semibold text-lg">WaterAudit</span>
+            </div>
+            <a href="mailto:wateraudit.support@gmail.com" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+              Support: wateraudit.support@gmail.com
+            </a>
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground text-center">
             © {new Date().getFullYear()} WaterAudit Inc. All rights reserved.
           </p>
           <div className="flex gap-4 text-sm text-muted-foreground">
             <Link href="#" className="hover:text-foreground transition-colors">Privacy</Link>
             <Link href="#" className="hover:text-foreground transition-colors">Terms</Link>
-            <Link href="#" className="hover:text-foreground transition-colors">Contact</Link>
           </div>
         </div>
       </footer>
