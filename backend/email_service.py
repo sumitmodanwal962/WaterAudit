@@ -65,3 +65,18 @@ def send_access_revoked_notification(user_email, old_role):
     </div>
     """
     _send_email([user_email], subject, body)
+
+def send_access_granted_notification(user_email, new_role):
+    subject = f"Notice: {new_role.capitalize()} Access Granted!"
+    body = f"""
+    <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #10b981;">Access Granted!</h2>
+        <p>Hello,</p>
+        <p>Great news! Your request for <strong>{new_role.upper()}</strong> privileges on the WaterAudit platform has been approved by a Superadmin.</p>
+        <p>You can now log in and access all {new_role} features across the platform.</p>
+        <div style="margin-top: 20px;">
+            <a href="https://your-domain.com/dashboard" style="background-color: #0284c7; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Go to Dashboard</a>
+        </div>
+    </div>
+    """
+    _send_email([user_email], subject, body)

@@ -341,6 +341,7 @@ def get_all_users(
 def update_admin_status(
     user_id: int,
     status_update: AdminStatusUpdate,
+    background_tasks: BackgroundTasks,
     current_superadmin: models.User = Depends(get_superadmin_user),
     db: Session = Depends(get_db),
 ):
@@ -351,9 +352,14 @@ def update_admin_status(
     if status_update.admin_status not in ["pending", "approved", "rejected"]:
         raise HTTPException(status_code=400, detail="Invalid status")
 
+    old_status = user.admin_status
     user.admin_status = status_update.admin_status
     db.commit()
     db.refresh(user)
+
+    if old_status != "approved" and status_update.admin_status == "approved":
+        background_tasks.add_task(email_service.send_access_granted_notification, user.email, user.role)
+
     return user
 
 @app.put("/api/admin/users/{user_id}/role", response_model=models.UserResponse)
@@ -381,9 +387,11 @@ def update_user_role(
     db.commit()
     db.refresh(user)
 
-    # Send notification if access revoked
+    # Send notification if access revoked or granted
     if old_role in ["admin", "superadmin"] and role_update.role == "user":
         background_tasks.add_task(email_service.send_access_revoked_notification, user.email, old_role)
+    elif old_role == "user" and role_update.role in ["admin", "superadmin"]:
+        background_tasks.add_task(email_service.send_access_granted_notification, user.email, role_update.role)
 
     return user
 
