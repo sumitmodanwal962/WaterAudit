@@ -141,6 +141,10 @@ def delete_user_account(
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    # 1. Delete from Firebase
+    auth.delete_firebase_user(current_user.firebase_uid)
+    
+    # 2. Delete from database
     db.delete(current_user)
     db.commit()
     return None

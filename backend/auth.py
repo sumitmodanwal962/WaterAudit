@@ -25,3 +25,12 @@ def verify_firebase_token(token: str) -> dict:
         return decoded_token
     except Exception as e:
         raise ValueError(f"Invalid Firebase token: {e}")
+
+def delete_firebase_user(uid: str):
+    """
+    Deletes a user from Firebase Auth by UID.
+    """
+    try:
+        auth.delete_user(uid)
+    except Exception as e:
+        print(f"Failed to delete Firebase user {uid}: {e}")
