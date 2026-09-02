@@ -114,9 +114,9 @@ export default function ProfilePage() {
         <div className="text-center sm:text-left">
           <h2 className="text-xl font-bold text-[#0f172a]">{user?.full_name || "No name set"}</h2>
           <p className="text-slate-500 text-sm">{user?.email}</p>
-          <span className={`mt-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${user?.role === "superadmin" ? "bg-amber-100 text-amber-700" : user?.role === "admin" ? "bg-violet-100 text-violet-700" : "bg-sky-100 text-sky-700"}`}>
+          <span className={`mt-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${user?.role === "superadmin" ? "bg-amber-100 text-amber-700" : user?.role === "admin" && user?.admin_status === "approved" ? "bg-violet-100 text-violet-700" : user?.role === "admin" && user?.admin_status === "pending" ? "bg-orange-100 text-orange-700" : user?.role === "admin" && user?.admin_status === "rejected" ? "bg-red-100 text-red-700" : "bg-sky-100 text-sky-700"}`}>
             <Shield className="h-3 w-3" />
-            {user?.role === "superadmin" ? "Superadmin" : user?.role === "admin" ? "Admin" : "User"}
+            {user?.role === "superadmin" ? "Superadmin" : user?.role === "admin" && user?.admin_status === "approved" ? "Admin" : user?.role === "admin" && user?.admin_status === "pending" ? "Admin (Pending)" : user?.role === "admin" && user?.admin_status === "rejected" ? "Admin (Rejected)" : "User"}
           </span>
           {user?.role === "user" && (
             <div className="mt-3">
