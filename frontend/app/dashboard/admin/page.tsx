@@ -24,6 +24,10 @@ export default function AdminDashboardPage() {
   const [toast, setToast] = useState<{ type: "success" | "error", message: string } | null>(null)
   const [editingAreasId, setEditingAreasId] = useState<number | null>(null)
   const [tempAreas, setTempAreas] = useState<string>("")
+  const [rejectingUser, setRejectingUser] = useState<number | null>(null)
+  const [blockDays, setBlockDays] = useState<number>(0)
+  const [blockDate, setBlockDate] = useState<string>("")
+  const [blockMode, setBlockMode] = useState<"days" | "date">("days")
 
   useEffect(() => {
     if (!isLoading && user?.role !== "superadmin") {
@@ -55,6 +59,26 @@ export default function AdminDashboardPage() {
       fetchUsers()
     } catch (e: any) {
       setToast({ type: "error", message: e.message || "Failed to update status" })
+    }
+  }
+
+  const handleConfirmReject = async (id: number) => {
+    try {
+      let block_until = null;
+      if (blockMode === "days" && blockDays > 0) {
+        const d = new Date();
+        d.setDate(d.getDate() + blockDays);
+        block_until = d.toISOString();
+      } else if (blockMode === "date" && blockDate) {
+        block_until = new Date(blockDate).toISOString();
+      }
+      
+      await updateAdminStatus(id, "rejected", block_until)
+      setToast({ type: "success", message: "Admin status updated to rejected" })
+      setRejectingUser(null)
+      fetchUsers()
+    } catch (e: any) {
+      setToast({ type: "error", message: e.message || "Failed to reject user" })
     }
   }
 
@@ -158,7 +182,7 @@ export default function AdminDashboardPage() {
                               <button onClick={() => handleUpdateStatus(u.id, "approved")} className="text-emerald-600 hover:text-emerald-800 font-medium text-sm px-2 py-1 bg-emerald-50 rounded-lg">
                                 Approve
                               </button>
-                              <button onClick={() => handleUpdateStatus(u.id, "rejected")} className="text-red-600 hover:text-red-800 font-medium text-sm px-2 py-1 bg-red-50 rounded-lg">
+                              <button onClick={() => setRejectingUser(u.id)} className="text-red-600 hover:text-red-800 font-medium text-sm px-2 py-1 bg-red-50 rounded-lg">
                                 Reject
                               </button>
                             </>
@@ -211,6 +235,39 @@ export default function AdminDashboardPage() {
                           />
                           <button onClick={() => handleSaveAreas(u.id)} className="bg-blue-600 text-white px-4 py-1.5 rounded-lg text-sm font-semibold hover:bg-blue-700">Save</button>
                           <button onClick={() => setEditingAreasId(null)} className="bg-white border border-slate-300 text-slate-700 px-4 py-1.5 rounded-lg text-sm font-semibold hover:bg-slate-50">Cancel</button>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                  {rejectingUser === u.id && (
+                    <tr className="bg-red-50/30">
+                      <td colSpan={4} className="px-6 py-4 border-t border-red-100/50">
+                        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                          <span className="text-sm font-semibold text-red-900">Block re-apply for:</span>
+                          <select 
+                            value={blockMode} 
+                            onChange={(e) => setBlockMode(e.target.value as "days" | "date")}
+                            className="rounded-lg border border-red-200 bg-white px-2 py-1.5 text-sm"
+                          >
+                            <option value="days">Preset Days</option>
+                            <option value="date">Specific Date</option>
+                          </select>
+                          
+                          {blockMode === "days" ? (
+                             <select value={blockDays} onChange={e => setBlockDays(Number(e.target.value))} className="rounded-lg border border-red-200 bg-white px-2 py-1.5 text-sm">
+                               <option value={0}>No block</option>
+                               <option value={7}>7 Days</option>
+                               <option value={15}>15 Days</option>
+                               <option value={30}>30 Days</option>
+                             </select>
+                          ) : (
+                             <input type="date" value={blockDate} onChange={e => setBlockDate(e.target.value)} min={new Date().toISOString().split('T')[0]} className="rounded-lg border border-red-200 bg-white px-2 py-1.5 text-sm" />
+                          )}
+                          
+                          <div className="flex gap-2 sm:ml-auto">
+                            <button onClick={() => handleConfirmReject(u.id)} className="bg-red-600 text-white px-4 py-1.5 rounded-lg text-sm font-semibold hover:bg-red-700">Confirm Reject</button>
+                            <button onClick={() => setRejectingUser(null)} className="bg-white border border-slate-300 text-slate-700 px-4 py-1.5 rounded-lg text-sm font-semibold hover:bg-slate-50">Cancel</button>
+                          </div>
                         </div>
                       </td>
                     </tr>

@@ -2,8 +2,8 @@ from fastapi import FastAPI, Depends, HTTPException, status, BackgroundTasks
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from datetime import timedelta
-from typing import List
+from datetime import timedelta, datetime, timezone
+from typing import List, Optional
 from pydantic import BaseModel
 
 import models
@@ -140,11 +140,15 @@ def request_admin_access(
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    if current_user.role != "user":
-        raise HTTPException(status_code=400, detail="Only standard users can request admin access.")
+    if current_user.role != "user" and current_user.admin_status != "rejected":
+        raise HTTPException(status_code=400, detail="Only standard users or rejected applicants can request admin access.")
+    
+    if current_user.reapply_blocked_until and current_user.reapply_blocked_until > datetime.now(timezone.utc):
+        raise HTTPException(status_code=403, detail=f"You cannot re-apply for admin access until {current_user.reapply_blocked_until.strftime('%Y-%m-%d')}.")
     
     current_user.role = "admin"
     current_user.admin_status = "pending"
+    current_user.reapply_blocked_until = None
     db.commit()
     db.refresh(current_user)
 
@@ -326,6 +330,7 @@ def save_data_input(
 # ── Superadmin: Manage Users ──────────────────────────────────────
 class AdminStatusUpdate(BaseModel):
     admin_status: str
+    block_reapply_until: Optional[datetime] = None
 
 class RoleUpdate(BaseModel):
     role: str
@@ -354,11 +359,19 @@ def update_admin_status(
 
     old_status = user.admin_status
     user.admin_status = status_update.admin_status
+    
+    if status_update.admin_status == "rejected" and status_update.block_reapply_until:
+        user.reapply_blocked_until = status_update.block_reapply_until
+    elif status_update.admin_status == "approved":
+        user.reapply_blocked_until = None
+        
     db.commit()
     db.refresh(user)
 
     if old_status != "approved" and status_update.admin_status == "approved":
         background_tasks.add_task(email_service.send_access_granted_notification, user.email, user.role)
+    elif old_status != "rejected" and status_update.admin_status == "rejected":
+        background_tasks.add_task(email_service.send_access_rejected_notification, user.email, user.role)
 
     return user
 

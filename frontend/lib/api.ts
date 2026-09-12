@@ -126,10 +126,10 @@ export async function getAllUsers(): Promise<UserProfile[]> {
   return apiFetch<UserProfile[]>("/api/admin/users");
 }
 
-export async function updateAdminStatus(userId: number, admin_status: string): Promise<UserProfile> {
+export async function updateAdminStatus(userId: number, admin_status: string, block_reapply_until?: string | null): Promise<UserProfile> {
   return apiFetch<UserProfile>(`/api/admin/users/${userId}/status`, {
     method: "PUT",
-    body: JSON.stringify({ admin_status }),
+    body: JSON.stringify({ admin_status, block_reapply_until }),
   });
 }
 

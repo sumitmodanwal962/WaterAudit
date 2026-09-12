@@ -118,23 +118,29 @@ export default function ProfilePage() {
             <Shield className="h-3 w-3" />
             {user?.role === "superadmin" ? "Superadmin" : user?.role === "admin" && user?.admin_status === "approved" ? "Admin" : user?.role === "admin" && user?.admin_status === "pending" ? "Admin (Pending)" : user?.role === "admin" && user?.admin_status === "rejected" ? "Admin (Rejected)" : "User"}
           </span>
-          {user?.role === "user" && (
+          {(user?.role === "user" || (user?.role === "admin" && user?.admin_status === "rejected")) && (
             <div className="mt-3">
-              <button 
-                onClick={async () => {
-                  if (confirm("Request Admin Approval? Your account will remain a user account until the request is approved.")) {
-                    try {
-                      await requestAdminAccess();
-                      window.location.reload();
-                    } catch (e: any) {
-                      setToast({ type: "error", message: e.message || "Failed to request admin access" });
+              {user?.reapply_blocked_until && new Date(user.reapply_blocked_until) > new Date() ? (
+                <div className="text-xs font-medium text-red-600 bg-red-50 px-3 py-2 rounded-lg border border-red-100 shadow-sm inline-block">
+                  You can re-apply after {new Date(user.reapply_blocked_until).toLocaleDateString()}
+                </div>
+              ) : (
+                <button 
+                  onClick={async () => {
+                    if (confirm("Request Admin Approval? Your account will remain a user account until the request is approved.")) {
+                      try {
+                        await requestAdminAccess();
+                        window.location.reload();
+                      } catch (e: any) {
+                        setToast({ type: "error", message: e.message || "Failed to request admin access" });
+                      }
                     }
-                  }
-                }}
-                className="text-xs font-semibold text-[#0284c7] hover:text-[#0369a1] bg-sky-50 hover:bg-sky-100 px-3 py-1.5 rounded-lg transition-colors border border-sky-100 shadow-sm"
-              >
-                Request Admin Access
-              </button>
+                  }}
+                  className="text-xs font-semibold text-[#0284c7] hover:text-[#0369a1] bg-sky-50 hover:bg-sky-100 px-3 py-1.5 rounded-lg transition-colors border border-sky-100 shadow-sm"
+                >
+                  {user?.admin_status === "rejected" ? "Re-apply for Admin Access" : "Request Admin Access"}
+                </button>
+              )}
             </div>
           )}
         </div>

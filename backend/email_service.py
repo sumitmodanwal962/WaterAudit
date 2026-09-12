@@ -46,13 +46,13 @@ def send_new_admin_notification(superadmin_emails, new_user_email, new_user_name
     body = f"""
     <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #0284c7;">New Admin Access Request</h2>
-        <p>Hello Superadmin,</p>
+        <p>Hello,</p>
         <p>A user has requested Admin privileges on the WaterAudit platform. Please review their details below:</p>
         <div style="background-color: #f8fafc; padding: 15px; border-radius: 8px; margin: 20px 0;">
             <p style="margin: 5px 0;"><strong>Name:</strong> {new_user_name}</p>
             <p style="margin: 5px 0;"><strong>Email:</strong> {new_user_email}</p>
         </div>
-        <p>You can approve or reject this request from the <a href="https://your-domain.com/dashboard/admin" style="color: #0284c7; font-weight: bold;">User Management Dashboard</a>.</p>
+        <p>You can approve or reject this request from the <a href="https://water-audit-azure.vercel.app/dashboard/admin" style="color: #0284c7; font-weight: bold;">User Management Dashboard</a>.</p>
     </div>
     """
     _send_email(superadmin_emails, subject, body)
@@ -63,8 +63,8 @@ def send_access_revoked_notification(user_email, old_role):
     <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #ea580c;">Access Revoked</h2>
         <p>Hello,</p>
-        <p>This is a notification that your <strong>{old_role.upper()}</strong> privileges on the WaterAudit platform have been revoked by a Superadmin.</p>
-        <p>Your account has been reverted to a standard user role. You can still log in and view your profile, but you no longer have access to admin features.</p>
+        <p>This is a notification that your <strong>{old_role.upper()}</strong> privileges on the WaterAudit platform have been revoked.</p>
+        <p>Your account has been reverted to a standard user role. You can still log in and view your profile, but you no longer have {old_role} access.</p>
     </div>
     """
     _send_email([user_email], subject, body)
@@ -75,10 +75,26 @@ def send_access_granted_notification(user_email, new_role):
     <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #10b981;">Access Granted!</h2>
         <p>Hello,</p>
-        <p>Great news! Your request for <strong>{new_role.upper()}</strong> privileges on the WaterAudit platform has been approved by a Superadmin.</p>
+        <p>Great news! Your request for <strong>{new_role.upper()}</strong> privileges on the WaterAudit platform has been approved.</p>
         <p>You can now log in and access all {new_role} features across the platform.</p>
         <div style="margin-top: 20px;">
-            <a href="https://your-domain.com/dashboard" style="background-color: #0284c7; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Go to Dashboard</a>
+            <a href="https://water-audit-azure.vercel.app/dashboard" style="background-color: #0284c7; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Go to Dashboard</a>
+        </div>
+    </div>
+    """
+    _send_email([user_email], subject, body)
+
+def send_access_rejected_notification(user_email, role_requested):
+    subject = f"Notice: {role_requested.capitalize()} Access Request Declined"
+    body = f"""
+    <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #ef4444;">Access Request Declined</h2>
+        <p>Hello,</p>
+        <p>This is a notification regarding your recent request for <strong>{role_requested.upper()}</strong> privileges on the WaterAudit platform.</p>
+        <p>After review, your request has been declined at this time. Your account remains as a standard user role.</p>
+        <p>If you believe this is an error or need further clarification, please contact the support team.</p>
+        <div style="margin-top: 20px;">
+            <a href="https://water-audit-azure.vercel.app/dashboard" style="background-color: #0284c7; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Go to Dashboard</a>
         </div>
     </div>
     """

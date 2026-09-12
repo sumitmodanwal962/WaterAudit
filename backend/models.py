@@ -16,6 +16,7 @@ class User(Base):
     firebase_uid = Column(String, unique=True, index=True, nullable=False)
     role = Column(String, default="user")
     admin_status = Column(String, default="pending")
+    reapply_blocked_until = Column(DateTime(timezone=True), nullable=True)
     is_active = Column(Boolean, default=True)
 
     # Profile fields
@@ -121,6 +122,7 @@ class UserResponse(BaseModel):
     address: Optional[str] = None
     location: Optional[str] = None
     assigned_areas: List[str] = []
+    reapply_blocked_until: Optional[datetime] = None
     created_at: Optional[datetime] = None
 
     class Config:
