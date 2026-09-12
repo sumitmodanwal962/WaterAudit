@@ -403,7 +403,7 @@ def update_user_role(
     # Send notification if access revoked or granted
     if old_role in ["admin", "superadmin"] and role_update.role == "user":
         background_tasks.add_task(email_service.send_access_revoked_notification, user.email, old_role)
-    elif old_role == "user" and role_update.role in ["admin", "superadmin"]:
+    elif old_role != role_update.role and role_update.role in ["admin", "superadmin"]:
         background_tasks.add_task(email_service.send_access_granted_notification, user.email, role_update.role)
 
     return user
