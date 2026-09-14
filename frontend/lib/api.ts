@@ -164,6 +164,7 @@ export interface UserProfile {
   address?: string;
   location?: string;
   assigned_areas?: string[];
+  reapply_blocked_until?: string;
   created_at?: string;
 }
 

@@ -293,17 +293,17 @@ def get_data_input(
     return data_input
 
 
-# ── Data Input: Save Progress (ADMIN ONLY) ────────────────────────
+# ── Data Input: Save Progress ─────────────────────────────────────
 @app.post("/api/projects/{project_id}/data-input", response_model=models.DataInputResponse)
 def save_data_input(
     project_id: int,
     data: models.DataInputCreate,
-    current_admin: models.User = Depends(get_admin_user),
+    current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     project = db.query(models.Project).filter(
         models.Project.id == project_id,
-        models.Project.owner_id == current_admin.id
+        models.Project.owner_id == current_user.id
     ).first()
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
