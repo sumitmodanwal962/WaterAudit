@@ -44,7 +44,7 @@ function DataInputPageContent() {
       .finally(() => setLoading(false));
   }, [projectId, router]);
 
-  const handleSaveProgress = async () => {
+  const handleSaveProgress = async (navigateAfterSave: boolean = false) => {
     if (!projectId) {
       alert("No project selected to save progress.");
       return;
@@ -60,6 +60,10 @@ function DataInputPageContent() {
       });
       setMessage({ type: 'success', text: 'Progress saved successfully!' });
       setTimeout(() => setMessage(null), 3000);
+      
+      if (navigateAfterSave) {
+        router.push(projectId ? `/dashboard/results?projectId=${projectId}` : "/dashboard/results");
+      }
     } catch (err: any) {
       setMessage({ type: 'error', text: err.message || 'Failed to save progress' });
     } finally {
@@ -160,20 +164,21 @@ function DataInputPageContent() {
         </div>
         <div className="flex items-center gap-3">
           <button
-            onClick={handleSaveProgress}
+            onClick={() => handleSaveProgress(false)}
             disabled={saving || !projectId}
             className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-[#0f172a] shadow-sm hover:bg-slate-50 transition-all active:scale-95 disabled:opacity-50"
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 text-[#0284c7]" />}
             Save Progress
           </button>
-          <Link
-            href={projectId ? `/dashboard/results?projectId=${projectId}` : "/dashboard/results"}
-            className="flex items-center justify-center gap-2 rounded-xl bg-[#0f172a] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-black transition-all active:scale-95"
+          <button
+            onClick={() => handleSaveProgress(true)}
+            disabled={saving || !projectId}
+            className="flex items-center justify-center gap-2 rounded-xl bg-[#0f172a] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-black transition-all active:scale-95 disabled:opacity-50"
           >
-            <CheckCircle2 className="h-4 w-4" />
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
             Complete Audit Entry
-          </Link>
+          </button>
         </div>
       </div>
 
