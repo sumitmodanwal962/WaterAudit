@@ -378,6 +378,7 @@ function DataInputPageContent() {
                               <div className="max-w-xs">
                                 <Select
                                   name={`q_${activeModalCategory}_${q.originalIndex}`}
+                                  value={modalAnswers[`q_${activeModalCategory}_${q.originalIndex}`] || undefined}
                                   onValueChange={(value) => handleModalAnswer(`q_${activeModalCategory}_${q.originalIndex}`, value)}
                                 >
                                   <SelectTrigger className="w-full bg-white">
@@ -399,10 +400,12 @@ function DataInputPageContent() {
                                   min={0}
                                   max={100}
                                   placeholder="0"
-                                  onInput={(e) => {
-                                    const input = e.target as HTMLInputElement;
-                                    if (Number(input.value) > 100) input.value = "100";
-                                    if (Number(input.value) < 0) input.value = "0";
+                                  value={modalAnswers[`q_${activeModalCategory}_${q.originalIndex}`] || ""}
+                                  onChange={(e) => {
+                                    let val = Number(e.target.value);
+                                    if (val > 100) val = 100;
+                                    if (val < 0) val = 0;
+                                    handleModalAnswer(`q_${activeModalCategory}_${q.originalIndex}`, val.toString());
                                   }}
                                   className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-[#0284c7] focus:ring-1 focus:ring-[#0284c7] transition-all"
                                 />
@@ -417,6 +420,8 @@ function DataInputPageContent() {
                                   type="number"
                                   min={0}
                                   placeholder={q.placeholder || "Enter value"}
+                                  value={modalAnswers[`q_${activeModalCategory}_${q.originalIndex}`] || ""}
+                                  onChange={(e) => handleModalAnswer(`q_${activeModalCategory}_${q.originalIndex}`, e.target.value)}
                                   className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-[#0284c7] focus:ring-1 focus:ring-[#0284c7] transition-all"
                                 />
                                 {q.unit && <span className="text-xs text-slate-400 font-semibold whitespace-nowrap">{q.unit}</span>}
@@ -428,6 +433,8 @@ function DataInputPageContent() {
                               <textarea
                                 rows={2}
                                 placeholder={q.placeholder || "Describe in detail..."}
+                                value={modalAnswers[`q_${activeModalCategory}_${q.originalIndex}`] || ""}
+                                onChange={(e) => handleModalAnswer(`q_${activeModalCategory}_${q.originalIndex}`, e.target.value)}
                                 className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-[#0284c7] focus:ring-1 focus:ring-[#0284c7] transition-all resize-none"
                               />
                             )}
@@ -437,6 +444,7 @@ function DataInputPageContent() {
                               <div className="max-w-full">
                                 <Select
                                   name={`q_${activeModalCategory}_${q.originalIndex}`}
+                                  value={modalAnswers[`q_${activeModalCategory}_${q.originalIndex}`] || undefined}
                                   onValueChange={(value) => handleModalAnswer(`q_${activeModalCategory}_${q.originalIndex}`, value)}
                                 >
                                   <SelectTrigger className="w-full bg-white text-left text-sm h-auto min-h-10 py-2.5">
