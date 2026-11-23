@@ -9,15 +9,16 @@ import { Label } from "@/components/ui/label"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/AuthContext"
 import { auth } from "@/lib/firebase"
-import { signInWithEmailAndPassword, signOut, sendEmailVerification, User, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail } from "firebase/auth"
+import { googleSignInError, startGoogleRedirect } from "@/lib/google-auth"
+import { signInWithEmailAndPassword, signOut, sendEmailVerification, User, sendPasswordResetEmail } from "firebase/auth"
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const { login, googleRedirectError } = useAuth()
+  const [error, setError] = useState<string | null>(googleRedirectError?.message ?? null)
   const [success, setSuccess] = useState<string | null>(null)
   const [unverifiedUser, setUnverifiedUser] = useState<User | null>(null)
   const router = useRouter()
-  const { login } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -82,44 +83,11 @@ export function LoginForm() {
   const handleGoogleSignIn = async () => {
     setIsLoading(true)
     setError(null)
+    setSuccess(null)
     try {
-      const provider = new GoogleAuthProvider()
-      const userCredential = await signInWithPopup(auth, provider)
-      const token = await userCredential.user.getIdToken()
-      
-      // Check if user exists in DB
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/users/me`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      
-      if (!res.ok) {
-        // Register them if they don't exist
-        await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/auth/register`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: userCredential.user.email,
-            firebase_uid: userCredential.user.uid,
-            full_name: userCredential.user.displayName,
-            role: "user"
-          })
-        })
-      }
-      
-      await login(token)
-      setSuccess("Login successful! Redirecting...")
-      setTimeout(() => router.push("/dashboard"), 800)
-    } catch (err: any) {
-      if (err.code === "auth/unauthorized-domain") {
-        setError("Login from this domain is not authorized.")
-      } else if (err.code === "auth/popup-closed-by-user") {
-        setError("Google Sign-In was cancelled.")
-      } else {
-        let msg = err.message || "Google Sign-In failed."
-        msg = msg.replace(/^Firebase:\s*(Error\s*)?/, "").replace(/\(auth\/[a-zA-Z0-9-]+\)\.?/g, "").trim()
-        setError(msg || "Google Sign-In failed.")
-      }
-    } finally {
+      await startGoogleRedirect()
+    } catch (error) {
+      setError(googleSignInError(error))
       setIsLoading(false)
     }
   }

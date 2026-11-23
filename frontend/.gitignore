@@ -17,3 +17,4 @@ node_modules
 
 #Auth
 firebase-credentials.json
+certificates

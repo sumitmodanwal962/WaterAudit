@@ -1,9 +1,19 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
 import { getAuth, Auth } from "firebase/auth";
 
+// The Next.js rewrite serves Firebase's redirect helper on the local HTTPS origin.
+const localAuthDomain =
+  process.env.NODE_ENV === "development" &&
+  process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID &&
+  typeof window !== "undefined" &&
+  window.location.hostname === "localhost" &&
+  window.location.protocol === "https:"
+    ? window.location.host
+    : undefined;
+
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  authDomain: localAuthDomain ?? process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,

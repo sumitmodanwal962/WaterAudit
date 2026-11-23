@@ -45,6 +45,7 @@ async function apiFetch<T>(path: string, options: FetchOptions = {}): Promise<T>
 export async function register(data: {
   email: string;
   firebase_uid: string;
+  role?: "user" | "admin";
   user_type?: string;
   full_name?: string;
   gender?: string;
